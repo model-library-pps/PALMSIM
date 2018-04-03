@@ -40,9 +40,9 @@ from components.helpers import METERS_PER_HECTARE
 from components.helpers import DAYS_PER_MONTH
 from components.helpers import GAUGE_PLANTING_DENSITY
 
-from components.vegetative.fronds import Fronds
-from components.vegetative.trunk  import Trunk
-from components.vegetative.roots  import Roots
+from components.fronds import Fronds
+from components.trunk  import Trunk
+from components.roots  import Roots
 from components.generative        import Organs
 from components.assimilates       import Assimilates
 from components.management        import Management
@@ -377,6 +377,7 @@ class PalmField():
         self.soil.update(dt=dt)
         self.assimilates.update()
 
+        self.management.update()
         self.fronds.update(dt=dt)
         self.trunk.update(dt=dt)
         self.roots.update(dt=dt)

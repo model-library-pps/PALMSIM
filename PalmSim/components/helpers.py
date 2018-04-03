@@ -70,7 +70,7 @@ class Spline(object):
     '''
 
     def __init__(self,coords,k=3):
-        ''' 
+        '''
 
 
         '''
@@ -202,8 +202,8 @@ def add_dumps(klass):
         lines = ['Object: {:}'.format(self._name)]
         lines += ['Version: {:}'.format(self._version)]
         lines += ['']
-        lines += ['{:<30.30} {:<9} {:<12}'.format('Property','Value','Unit')]
-        lines += [52*'-']
+        lines += ['{:<40.40} {:<9} {:<12}'.format('Property','Value','Unit')]
+        lines += [62*'-']
 
         attributes = self.to_dict()
 
@@ -211,13 +211,13 @@ def add_dumps(klass):
 
             if ' (' in key:
                 var,unit = key.split(' (')
-                unit = unit[:-1] 
+                unit = unit[:-1]
             else:
                 var = key
                 unit = '?'
 
             if isinstance(value,(int,float)):
-                lines += ['{:<30.30} {:<9.4f} {:<12}'.format(var,value,unit)]
+                lines += ['{:<40.40} {:<9.4f} {:<12}'.format(var,value,unit)]
             else:
                 pass
 

@@ -1170,13 +1170,13 @@ class Organs(object):
         source: 'Calibration to measured bunch counts --- ask the author.'
         uncertainty: 20%
     female_fraction_young:
-        value: [0.95,3]
+        value: [0.6,3]
         unit: '1,YAP'
         info: 'The fraction female for a "young" palm. - 3 YAP, note we are explicitly qualitative here.'
         source: 'Based on the associated qualitative statement found on p.26 in Advances in Oil Palm Research Volume 1, 2000.'
         uncertainty: 20%
     female_fraction_old:
-        value: [0.35,30]
+        value: [0.3,30]
         unit: '1,YAP'
         info: 'The fraction female for a "young" palm.'
         source: 'Based on the associated qualitative statement found on p.26 in Advances in Oil Palm Research Volume 1, 2000.'

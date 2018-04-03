@@ -4,7 +4,7 @@
 # README
 ########
 
-''' Provides the soil-water balance models.
+''' Provides the management model.
 
 Developed for Python 3.
 '''
@@ -63,7 +63,28 @@ class Management(object):
         unit: '1/ha'
         info: 'The planting density.'
         source: ''
-        error: 0
+        error: 1%
+    prune_period:
+        value: 3
+        unit: 'month'
+        info: 'How often the site is pruned.'
+        source: 'Based on the actual schedule of an estate manager.'
+        error: 10%
+    first_prune_month:
+        value: 0
+        unit: 'month'
+        info: 'Which month of the year is
+                the first month of periodic pruning e.g. January -> 0th month.'
+        source: 'Choice.'
+        error: 10%
+    t_start_periodic_pruning:
+        value: 48
+        unit: 'month'
+        info: 'The start of the periodic pruning.
+                --- note, a work-around, read the docs of the management class.'
+        source: 'Based on pictures in the booklet
+                    Oil Palm Vegetative Measurement Manual, MPOB, 2017.'
+        error: 10%
     fronds_goal_count_t0:
         value: 50
         unit: '1/palm'
@@ -71,8 +92,7 @@ class Management(object):
         source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of
                     oil palm in indonesia.'
-        error: '10%, for the time being, untill we model fronds
-                as cohorts, then it will be actually in principle 0%.'
+        error: 10%
     fronds_goal_count_t1:
         value: 40
         unit: '1/palm'
@@ -80,8 +100,7 @@ class Management(object):
         source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of
                     oil palm in indonesia.'
-        error: '10%, for the time being, untill we model fronds
-                as cohorts, then it will be actually in principle 0%.'
+        error: 10%
     ''')
 
     variable_units = dict(goal_mass_fronds = 'tonne_DM/ha',
@@ -92,14 +111,20 @@ class Management(object):
     _name = 'management'
     _prefix = _name
 
-    _style = 'Simple'
-    _version = 'v0.01'
+    _version = '2.0.1'
 
     def __init__(self,palm=None):
 
         # e.g. to get the age of the palm
         self._palm = palm
         self.parameters = deepcopy(self.default_parameters)
+        self.frond_count = 0
+
+    def get_frond_count(self):
+        if self._palm is None:
+            return 0
+        else:
+            return self._palm.fronds.count
 
     @property
     def planting_density(self):
@@ -136,7 +161,66 @@ class Management(object):
         if self._palm is None:
             return 0
         else:
-            return max(0,self._palm.fronds.count - self.fronds_goal_count)
+            periodic_pruning = self.prune_rate_count_periodic
+            harvest_pruning = self.prune_rate_count_harvest
+            pruning = periodic_pruning + harvest_pruning
+            return pruning
+
+    @property
+    def prune_rate_count_periodic_potential(self):
+        ''' Periodic prune rate (1/ha/month). '''
+        if self._palm is None:
+            return 0
+        else:
+            return max(0,self.frond_count -\
+                             self.fronds_goal_count -\
+                              self.prune_rate_count_harvest)
+
+    @property
+    def _prune_period(self):
+        ''' Periodic prune rate (1/month). '''
+        return self.parameters['prune_period']['value']
+
+    @property
+    def is_periodic_pruning(self):
+        ''' Whether this month there is periodic pruning (bool). '''
+        t_start = self.parameters['t_start_periodic_pruning']['value']
+        first_month = self.parameters['first_prune_month']['value']
+
+        MAP = self._MAP
+
+        if self._MAP <= t_start:
+            return 1
+        elif ((MAP - first_month) % self._prune_period == 0):
+            return 1
+        else:
+            return 0
+
+    @property
+    def prune_rate_count_periodic(self):
+        ''' Periodic prune rate (1/ha/month).
+
+        For the time being, since we do not model senescence.
+        We act as if before bunch production sets on
+        fronds are pruned monthly to keep
+        the count around 50 fronds/palm.
+
+        After this age the main pruning is actually periodical.
+        '''
+        if self._palm is None:
+            return 0
+        elif self.is_periodic_pruning:
+            return self.prune_rate_count_periodic_potential
+        else:
+            return 0
+
+    @property
+    def prune_rate_count_harvest(self):
+        ''' Harvest related prune rate (1/ha/month). '''
+        if self._palm is None:
+            return 0
+        else:
+            return max(0,self._palm.organs.bunch_count)
 
     @property
     def fronds_goal_count_alt(self):
@@ -177,5 +261,8 @@ class Management(object):
         '''
 
         return self.planting_density*self.fronds_goal_count_alt
+
+    def update(self):
+        self.frond_count = self.get_frond_count()
 
 LatestManagement = Management

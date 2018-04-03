@@ -29,11 +29,11 @@ __status__ = "Development"
 import yaml
 from copy import deepcopy
 
-from ..helpers import Parameter
-from ..helpers import add_dumps
-from ..helpers import METERS_PER_HECTARE
-from ..helpers import DAYS_PER_MONTH
-from ..helpers import GAUGE_PLANTING_DENSITY
+from components.helpers import Parameter
+from components.helpers import add_dumps
+from components.helpers import METERS_PER_HECTARE
+from components.helpers import DAYS_PER_MONTH
+from components.helpers import GAUGE_PLANTING_DENSITY
 
 import numpy as np
 
