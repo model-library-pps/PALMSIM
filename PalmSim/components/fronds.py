@@ -119,10 +119,8 @@ class Fronds(object):
         value: 4.2
         unit: 'tonne_CH2O/TJ'
         info: 'The light use efficiency.'
-        source: 'Based on LR-curves as measured by
-                    Breure, Gerritsma.
-                    Tested, first of all, using fig. 5.3
-                    found in the book by Corley on DM production.'
+        source: 'Based on a more detailed hourly light-response
+                    model (copied from SUCROS) using oil palm LR measurements by Breure, Gerritsma.'
         uncertainty: 10%
     WUE:
         value: 0.09
@@ -135,7 +133,7 @@ class Fronds(object):
         unit: '1'
         info: 'The canopy light extinction coefficient.'
         source: 'Based on the thesis by Gerritsma, W., 1988.'
-        uncertainty: 20%
+        uncertainty: 5%
     leaf_area_a:
         value: 12.13
         unit: 'm**2'
@@ -170,7 +168,7 @@ class Fronds(object):
         source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 10%
+        uncertainty: 5%
     initiation_rate_b:
         value: 1.5
         unit: '1'
@@ -178,7 +176,7 @@ class Fronds(object):
         source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 10%
+        uncertainty: 5%
     initiation_rate_c:
         value: 0.27
         unit: '1/year'
@@ -186,7 +184,7 @@ class Fronds(object):
         source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 10%
+        uncertainty: 5%
     initiation_rate_max:
         value: 42
         unit: '1/year'
@@ -194,7 +192,7 @@ class Fronds(object):
         source: 'Based on Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 10%
+        uncertainty: 5%
     opening_age:
         value: 24
         unit: 'month'

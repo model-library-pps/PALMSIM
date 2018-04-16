@@ -70,31 +70,31 @@ class Trunk(object):
         unit: 'tonne_CH2O/tonne_DM/day'
         info: 'The specific maintenance.'
         source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
-        error: 5%
+        uncertainty: 5%
     conversion_efficiency:
         value: 0.69
         unit: 'g_DM/g_CH2O'
         info: 'The conversion efficiency.'
         source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
-        error: 5%
+        uncertainty: 5%
     mass_loss_rate:
         value: 0.0
         unit: 'tonne_DM/ha/day'
         info: 'The mass loss rate.'
         source: 'Assumption by Hoffman/Alba.'
-        error: 5%
+        uncertainty: 5%
     potential_growth_rates:
         value: [[0,1.1],[60,1.1],[120,1.1],[180,.9],[240,0.63],[360,0.225]]
         unit: '[month,tonne_DM/palm/month]'
         info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
         source: 'Loosely based on reported growth rates found in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
-        error: 5%
+        uncertainty: 5%
     ''')
 
     default_initial_values = yaml.load('''
     mass:
         value: 20
-        error: 0
+        uncertainty: 10%
         unit: 'kg_DM/plant'
         info: 'Initial weight of the plant part.'
         source: 'Based Advances in Oil Palm Research Volume 1, 2000. p. 26.'

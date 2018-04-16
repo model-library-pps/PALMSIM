@@ -70,9 +70,9 @@ CLASSES = [Fronds,
             MesocarpOil,
             Kernel]
 
-def make_parameter_file(filename='settings.yaml'):
-    ''' Makes the settings file (settings.yaml) based on the defaults. '''
 
+def get_parameters_config():
+    ''' Get the default parameters of the model. '''
     config_dict = {}
 
     for kls in CLASSES:
@@ -93,13 +93,43 @@ def make_parameter_file(filename='settings.yaml'):
 
     config_text = preamble + '\n\n# Parameters per sub-model:\n\n' + dump
 
+    return config_text
+
+def save_parameters_config(filename='settings.yaml'):
+    ''' Makes the settings file (settings.yaml) based on the defaults. '''
+
+    config_text = get_default_parameters()
+
     filepath = os.path.join(MODULE_DIR,filename)
 
     with open(filepath,'w') as f:
         f.write(config_text)
 
+    return config_text
+
+def get_parameters():
+    ''' Gets the parameters of all sub-models.
+
+    Returns
+    -------
+    A nested-dictionary of parameters per sub-model.
+    '''
+    config_dict = {}
+
+    for kls in CLASSES:
+        config_dict[kls._name] = kls.default_parameters
+
+    return config_dict
+
 def set_parameters(settings = None):
-    ''' Sets the parameters of all sub-models. '''
+    ''' Sets the parameters of all sub-models.
+
+    Input
+    -----
+    settings: dict
+        A nested-dictionary of parameters per sub-model.
+
+    '''
     if settings is None:
         return False
     else:
@@ -413,7 +443,7 @@ class PalmField():
 
         df.columns = [my_replace(s) for s in df.columns]
 
-        df['yield FM yearly (tonne FM/year)'] = df['organs yield FM yearly (tonne FM/year)']
+        df['yield FM yearly (tonne FM/ha/year)'] = df['organs yield FM yearly (tonne FM/ha/year)']
         return df
 
     ########

@@ -50,31 +50,37 @@ DEFAULT_STALK_PARAMETERS = yaml.load('''
             unit: 'tonne_CH2O/tonne_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
+            uncertainty: 5%
         conversion_efficiency:
             value: 0.69
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
+            uncertainty: 5%
         t_growth_start:
             value: 0
             unit: 'month'
             info: 'The start of potential growth, in months after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         t_growth_end:
             value: 33
             unit: 'month'
             info: 'The end of potential growth, in months after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         potential_mass_t0:
             value: .5
             unit: 'kg'
             info: 'The potential mass for a "young" palm (age <= 3 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         potential_mass_t1:
             value: 5
             unit: 'kg'
             info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         ''')
 
 DEFAULT_MESOCARP_FIBERS_PARAMETERS = yaml.load('''
@@ -83,31 +89,37 @@ DEFAULT_MESOCARP_FIBERS_PARAMETERS = yaml.load('''
             unit: 'tonne_CH2O/tonne_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
+            uncertainty: 5%
         conversion_efficiency:
             value: 0.69
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
+            uncertainty: 5%
         t_growth_start:
             value: 0
             unit: 'month'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         t_growth_end:
             value: 5
             unit: 'month'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         potential_mass_t0:
             value: 2
             unit: 'kg'
             info: 'The potential mass for a "young" palm (age <= 3 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         potential_mass_t1:
             value: 20
             unit: 'kg'
             info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         ''')
 
 DEFAULT_MESOCARP_OIL_PARAMETERS = yaml.load('''
@@ -116,31 +128,37 @@ DEFAULT_MESOCARP_OIL_PARAMETERS = yaml.load('''
             unit: 'tonne_CH2O/tonne_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
+            uncertainty: 5%
         conversion_efficiency:
             value: 0.42
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
+            uncertainty: 5%
         t_growth_start:
             value: 3
             unit: 'month'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         t_growth_end:
             value: 5
             unit: 'month'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         potential_mass_t0:
             value: 3
             unit: 'kg'
             info: 'The potential mass for a "young" palm (age <= 3 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         potential_mass_t1:
             value: 30
             unit: 'kg'
             info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         ''')
 
 DEFAULT_KERNEL_PARAMETERS = yaml.load('''
@@ -149,31 +167,37 @@ DEFAULT_KERNEL_PARAMETERS = yaml.load('''
             unit: 'tonne_CH2O/tonne_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
+            uncertainty: 5%
         conversion_efficiency:
             value: 0.42
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
+            uncertainty: 5%
         t_growth_start:
             value: 2
             unit: 'month'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         t_growth_end:
             value: 6
             unit: 'month'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
+            uncertainty: 5%
         potential_mass_t0:
             value: .5
             unit: 'kg'
             info: 'The potential mass for a "young" palm (age <= 3 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         potential_mass_t1:
             value: 5
             unit: 'kg'
             info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
+            uncertainty: 5%
         ''')
 
 ##################
@@ -1153,7 +1177,7 @@ class Organs(object):
     mesocarp_oil_content:
         unit: '1'
     yield_FM_yearly:
-        unit: 'tonne_FM/year'
+        unit: 'tonne_FM/ha/year'
     ''')
 
     default_parameters = yaml.load('''

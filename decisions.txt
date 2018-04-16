@@ -1,4 +1,9 @@
 
+--------------
+Header
+--------------
+
+Important note: File here as an example basis, to be updated. At the moment, outdated.
 
 -----------------------
 PalmSim: Specifications
@@ -6,64 +11,9 @@ PalmSim: Specifications
 
 “If I had an hour to solve a problem I'd spend 55 minutes thinking about the problem and 5 minutes thinking about solutions.” ― Albert Einstein
 
---------------
-Design Process
---------------
-
-1. Define the Problem
-	[Who] need(s) [what] because [why].
-
-    What is the problem or need?
-    Who has the problem or need?
-    Why is it important to solve?
-
-2. Do Background Research
-
-	Learn from the experiences of others, find out existing solutions to similar problems, and avoid mistakes that were made in the past.
-
--->
-3. Specify Requirements
-
-	Design requirements state the important characteristics that your solution must meet to succeed. One of the best ways to identify the design requirements for your solution is to analyze the concrete example of a similar, existing product, noting each of its key features.
-
-4. Brainstorm Solutions
-
-	There are always many good possibilities for solving design problems. If you focus on just one before looking at the alternatives, it is almost certain that you are overlooking a better solution. Good designers try to generate as many possible solutions as they can.
-
-5. Choose the Best Solution
-
- 	Look at whether each possible solution meets your design requirements. Some solutions probably meet more requirements than others. Reject solutions that do not meet the requirements.
-
-6. Do Development Work
-
-	Development involves the refinement and improvement of a solution, and it continues throughout the design process, often even after a product ships to customers.
-
-7. Build a Prototype
-
-	A prototype is an operating version of a solution. Often it is made with different materials than the final version, and generally it is not as polished. Prototypes are a key step in the development of a final solution, allowing the designer to test how the solution will work.
-
-8. Test and Redesign
-
-	The design process involves multiple iterations and redesigns of your final solution. You will likely test your solution, find new problems, make changes, and test new solutions before settling on a final design.
-
-9. Communicate Results
-
-To complete your project, communicate your results to others in a final report and/or a display board. Professional engineers always do the same, thoroughly documenting their solutions so that they can be manufactured and supported.
-
 -------------------------------------------
 0. Current Challenges / Newly defined specs
 -------------------------------------------
-
-1) Radiation: Unclear what value is typical.
-	a) What value range (monthly mean: MJ/m2/day) is supported/sensible?
-		i) 14--16---the "Haze value"; Caliman and Southworth, 1998.
-		ii) 16--18---the primary candidate
-		iii) 18--20
-		iv) 20--22
-		v) ...
-	b) If (a) results in higher-then-expected assimilation rates
-		i) assume LUE is wrong, raise priority of LUE investigation LUE---preliminary estimate: LUE is 10% to high(!).
-		ii) assume LUE is right, raise priority of maint./conv. eff. check
 
 2) Fruit mass: In reality goes up with age
 		currently suffers from discontinuity, +10% away from observed values.
@@ -201,6 +151,14 @@ A. Overall
 
 B. Light-Use
 ------------
+
+1) Radiation: Unclear what value is typical.
+	a) What value range (monthly mean: MJ/m2/day) is supported/sensible?
+		i) 14--16---the "Haze value"; Caliman and Southworth, 1998.
+		ii) 16--18---the primary candidate
+		iii) 18--20
+		iv) 20--22
+		v) ...
 
 1) Gross assimilation rate
 	*given domain(B3), chosen time-step of integration (A3)

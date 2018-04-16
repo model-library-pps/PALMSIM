@@ -65,7 +65,7 @@ class Roots(object):
                 Photosynthese et productivite du palmier a huile en liaison
                 avec les facteurs climatiques.
                 Table ?.'
-        error: 5%
+        uncertainty: 5%
     conversion_efficiency:
         value: 0.69
         unit: 'g_DM/g_CH2O'
@@ -75,25 +75,25 @@ class Roots(object):
                     avec les facteurs climatiques.
                     In turn based on van Kraalingen, D.W.G., 1989.
                     See text below table II and table III.'
-        error: 5%
+        uncertainty: 5%
     loss_param_a:
         value: 0.013
         unit: '1/month'
         info: 'Co-determines the mass loss rate of the roots.'
         source: 'The legacy version; PalmSim 2014.'
-        error: 20%
+        uncertainty: 20%
     loss_param_b:
         value: 0.06
         unit: 'tonne_DM/ha/month'
         info: 'Co-determines the mass loss rate of the roots.'
         source: 'The legacy version; PalmSim 2014.'
-        error: 20%
+        uncertainty: 20%
     potential_growth_rate:
         value: 0.00135
         unit: 'tonne_DM/palm/month'
         info: 'The potential growth rate'
         source: 'Based on Corley et al., 1971, Productivity of the Oil Palm in Malaysia.'
-        error: 5%
+        uncertainty: 5%
     ''')
 
     default_initial_values = yaml.load('''
