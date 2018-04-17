@@ -93,11 +93,11 @@ class Trunk(object):
 
     default_initial_values = yaml.load('''
     mass:
-        value: 20
+        value: 2
         uncertainty: 10%
         unit: 'kg_DM/plant'
         info: 'Initial weight of the plant part.'
-        source: 'Based Advances in Oil Palm Research Volume 1, 2000. p. 26.'
+        source: 'Based on Corley, 1971.'
     ''')
 
     variable_units = dict(assim_growth                  = 'tonne_CH2O/ha/month',

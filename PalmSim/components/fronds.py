@@ -211,7 +211,7 @@ class Fronds(object):
         uncertainty: 0
         unit: 'kg_DM/plant'
         info: 'Initial weight of the fronds.'
-        source: 'Based on an estimate of an initial 3 kg DM per leaf.'
+        source: 'Based on Corley, 1971.'
     count:
         value: 30
         uncertainty: 0
