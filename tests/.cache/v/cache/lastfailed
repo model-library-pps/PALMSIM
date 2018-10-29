@@ -1,0 +1,4 @@
+{
+  "test_assimilates.py::test_plain_load": true,
+  "test_weather.py::test_a_series_default_mean": true
+}

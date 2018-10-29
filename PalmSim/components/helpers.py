@@ -1,40 +1,119 @@
 #!/usr/bin/env python
 
-########
-# README
-########
-
-''' Provides the soil-water balance models.
-
-Developed for Python 3.
-'''
-
-########
-# Header
-########
-
-__author__ = "Willem Hekman"
-__copyright__ = "Copyright 2018, PPS"
-__credits__ = ["Willem Hekman"]
-__license__ = "Copyleft,see http://models.pps.wur.nl/content/licence_agreement"
-__version__ = "1.0.0.1"
-__maintainer__ = "Willem Hekman"
-__email__ = "willem.hekman@wur.nl"
-__status__ = "Development"
-
-##################
-# Import Libraries
-##################
+''' Contains the helper functions/classes. '''
 
 import yaml
 import sys
+
+import numpy as np
+
 from scipy import interpolate
 
 import sys
 
-DAYS_PER_MONTH = 30
-METERS_PER_HECTARE = 100**2
-GAUGE_PLANTING_DENSITY = 138
+def hygienic(decorator):
+    ''' Decorator decorator, providies hygiene; preservation of basic attributes.'''
+    def new_decorator(obj):
+        decorated_obj = decorator(obj)
+        decorated_obj.__name__ = obj.__name__
+        decorated_obj.__doc__ = obj.__doc__
+        decorated_obj.__module__ = obj.__module__
+        return decorated_obj
+    return new_decorator
+
+@hygienic
+def add_dumps(klass):
+    ''' Class decorator providing data dump methods (incl. a __repr__). '''
+
+    _attribute_sort_order = ['mass','assim','maint']
+
+    @property
+    def _instance_variables(self):
+        return [attr for attr in dir(self) if not attr.startswith('_')]
+
+    def to_dict(self, prefixed = False):
+        ''' Returns a dict of all float-like instance variables.'''
+
+        attributes = self._instance_variables
+
+        units = self.units
+
+        d = {}
+
+        for key in attributes:
+
+            try:
+                value = getattr(self,key)
+            except:
+                print(sys.exc_info[0])
+                pass
+
+            if isinstance(value,(float,int)):
+                if key in units:
+                    unit = units[key]
+                    d['{:} ({:})'.format(key,unit)] = value
+                else:
+                    d[key] = value
+            else:
+                pass
+
+        if prefixed:
+
+            prefix = self._prefix
+
+            d = {'{:}_{:}'.format(prefix,k):v for k,v in d.items()}
+
+        return d
+
+    def print_parameters(self,default=False):
+        if default:
+            parameters = self.default_parameters
+        else:
+            parameters = self.parameters
+        print(yaml.dump(parameters,default_flow_style=False))
+
+    @property
+    def units(self):
+        return self.variable_units
+
+    def __repr__(self):
+
+        lines = ['Object: {:}'.format(self.__class__.__name__)]
+        lines += ['']
+        lines += ['{:<40.40} {:>9} {:<12}'.format('Property','Value','Unit')]
+        lines += [62*'-']
+
+        attributes = self.to_dict()
+
+        for key,value in attributes.items():
+
+            if ' (' in key:
+                var,unit = key.split(' (')
+                unit = unit[:-1]
+            else:
+                var = key
+                unit = '?'
+
+            if isinstance(value,(int,float)):
+                lines += ['{:<40.40} {:>9.2f}  {:<12}'.format(var,value,unit)]
+            else:
+                pass
+
+        return '\n'.join(lines)
+
+    decorations =  [('_instance_variables',_instance_variables),
+                    ('_attribute_sort_order',_attribute_sort_order),
+                    ('print_parameters',print_parameters),
+                    ('to_dict',to_dict),
+                    ('units',units),]
+
+    decorations_to_add = {k:v for (k,v) in decorations if k not in dir(klass)}
+    decorations_to_add['__repr__'] = __repr__
+
+    return type(klass.__name__,
+               (klass,),
+               decorations_to_add)
+
 
 class Spline(object):
     ''' Piecewise by polynomial spline of order k.
@@ -91,151 +170,6 @@ class Spline(object):
     def __repr__(self):
         return 'order: {:}\ncoords: {:}'.format(self.k,self.coords)
 
-class Parameter(object):
-    """ Descriptor: gives (dot named) access to self.parameters fields.
-
-    Examples
-    --------
-    class Fish():
-        ''' A fish class. '''
-        parameters = {'color':'yellow'}
-        color = Parameter('color')
-
-    f = Fish()
-    f.color
-    >>> 'yellow'
-    f.color = 'blue'
-    f._parameters
-    >>> {'color':'blue'}
-
-    """
-
-    def __init__(self,key):
-        self.key = key
-
-    def __get__( self, instance, klass):
-        return instance.parameters[self.key]['value']
-
-    def __set__( self, instance, value ):
-        instance.parameters[self.key]['value'] = value
-
-def hygienic(decorator):
-    ''' Decorator decorator, providies hygiene; preservation of basic attributes.'''
-    def new_decorator(obj):
-        decorated_obj = decorator(obj)
-        decorated_obj.__name__ = obj.__name__
-        decorated_obj.__doc__ = obj.__doc__
-        decorated_obj.__module__ = obj.__module__
-        return decorated_obj
-    return new_decorator
-
-@hygienic
-def add_dumps(klass):
-    ''' Class decorator providing data dump methods (incl. a __repr__). '''
-
-    _attribute_sort_order = ['mass','assim','maint']
-
-    @property
-    def _instance_variables(self):
-        return [attr for attr in dir(self) if not attr.startswith('_')]
-
-    def to_dict(self):
-        ''' Returns a dict of all float-like instance variables.'''
-
-        attributes = self._instance_variables
-
-        units = self.units
-
-        d = {}
-
-        for key in attributes:
-
-            try:
-                value = getattr(self,key)
-            except:
-                print(sys.exc_info[0])
-                pass
-
-            if isinstance(value,(float,int)):
-                if key in units:
-                    unit = units[key]
-                    d['{:} ({:})'.format(key,unit)] = value
-                else:
-                    d[key] = value
-            else:
-                pass
-
-        return d
-
-    def to_prefixed_dict(self):
-
-        prefix = self._prefix
-
-        dictionary = self.to_dict()
-
-        new_dictionary = {}
-
-        for key,value in dictionary.items():
-
-            if prefix == '':
-                new_key = key
-            else:
-                new_key = prefix + '_' + key
-
-            new_dictionary[new_key] = value
-
-        return new_dictionary
-
-    def print_parameters(self,default=False):
-        if default:
-            parameters = self.default_parameters
-        else:
-            parameters = self.parameters
-        print(yaml.dump(parameters,default_flow_style=False))
-
-    @property
-    def units(self):
-        return self.variable_units
-
-    def __repr__(self):
-
-        lines = ['Object: {:}'.format(self._name)]
-        lines += ['Version: {:}'.format(self._version)]
-        lines += ['']
-        lines += ['{:<40.40} {:<9} {:<12}'.format('Property','Value','Unit')]
-        lines += [62*'-']
-
-        attributes = self.to_dict()
-
-        for key,value in attributes.items():
-
-            if ' (' in key:
-                var,unit = key.split(' (')
-                unit = unit[:-1]
-            else:
-                var = key
-                unit = '?'
-
-            if isinstance(value,(int,float)):
-                lines += ['{:<40.40} {:<9.4f} {:<12}'.format(var,value,unit)]
-            else:
-                pass
-
-        return '\n'.join(lines)
-
-    decorations =  [('_instance_variables',_instance_variables),
-                    ('_attribute_sort_order',_attribute_sort_order),
-                    ('print_parameters',print_parameters),
-                    ('to_prefixed_dict',to_prefixed_dict),
-                    ('to_dict',to_dict),
-                    ('units',units),]
-
-    decorations_to_add = {k:v for (k,v) in decorations if k not in dir(klass)}
-    decorations_to_add['__repr__'] = __repr__
-
-    return type(klass.__name__,
-               (klass,),
-               decorations_to_add)
 
 def read_yaml(data):
     ''' Reads in a yaml data file either a path or the actual yaml-text.'''
@@ -252,19 +186,3 @@ def read_yaml(data):
         raise ValueError
 
     return _data
-
-def recursive_dict_printer(d,indent=0):
-    '''Prints a nested dict recursively'''
-    space = indent*' '
-    frmstr = space+'{:}:'
-    for k,v in d.items():
-        if isinstance(v,dict):
-            print(frmstr.format(k))
-            recursive_dict_printer(v,indent=indent+4)
-        else:
-            if isinstance(v,str):
-                print(frmstr.format(k),'\'{:}\''.format(v))
-            else:
-                print(frmstr.format(k),'{:}'.format(v))
-
-import numpy as np

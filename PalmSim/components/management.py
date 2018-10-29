@@ -29,9 +29,9 @@ __status__ = "Development"
 import yaml
 from copy import deepcopy
 
-from .helpers import Parameter
 from .helpers import add_dumps
-from .helpers import GAUGE_PLANTING_DENSITY
+
+from .constants import DEFAULT_PLANTING_DENSITY
 
 import numpy as np
 
@@ -51,9 +51,6 @@ class Management(object):
 
     This current version instead revolves around goal frond count(s) (!)
     from which the prune rate in terms of mass follows.
-
-    In the future one can imagine frond pruning to be associated with fruit
-    harvesting as is typically done.
 
     '''
 

@@ -1,0 +1,20 @@
+
+todo
+----
+
+- remove this @parameter nonsense
+
+- parametrize via class params - do without instance params (singleton)
+
+- make tests
+	- starting with one for asserting
+		conservation of assimilates for growth of the generative part
+	- basically each organ should account the amount of assimilates stored as mass
+
+- review @add_dumps
+- make generative/vegetative sub-packages
+
+
+- start using git again :)
+
+- have a look at these FPRs

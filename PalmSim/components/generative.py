@@ -31,9 +31,10 @@ import sys
 
 from copy import deepcopy
 
-from components.helpers import GAUGE_PLANTING_DENSITY
-from components.helpers import DAYS_PER_MONTH
-from components.helpers import add_dumps
+from .helpers import add_dumps
+
+from .constants import DEFAULT_PLANTING_DENSITY
+from .constants import DAYS_PER_MONTH
 
 from scipy import interpolate
 
@@ -266,7 +267,7 @@ class SubOrgan(object):
 
     Key properties:
         potential_mass : the potential mass.
-        sink_strength_potential : potential sink strength.
+        potential_sink_strength : potential sink strength.
         relative_sink_strength : sink strength relative to sibling sub-organs.
         _owner : reference to the parent organ (the owner).
 
@@ -320,7 +321,7 @@ class SubOrgan(object):
         unit: 'kg_DM/month'
     relative_sink_strength:
         unit: '1'
-    sink_strength_potential:
+    potential_sink_strength:
         unit: 'kg_CH2O/month'
     ''')
 
@@ -354,7 +355,7 @@ class SubOrgan(object):
         self.specific_maintenance_requirement = self.parameters['specific_maintenance']['value']
 
         # rate
-        self.sink_strength_potential = self.get_sink_strength_potential()
+        self.potential_sink_strength = self.get_potential_sink_strength()
 
         # dummy variable for proto-typing
         self._assim_growth = 0
@@ -398,7 +399,7 @@ class SubOrgan(object):
     ###############
     # Sink-strength
     ###############
-    def get_sink_strength_potential(self):
+    def get_potential_sink_strength(self):
         ''' Potential sink strength (kg CH2O/month).
 
         Follows from the potential mass growth rate and the
@@ -421,9 +422,9 @@ class SubOrgan(object):
             # assume it is stand-alone
             return 1
         else:
-            if self._owner.sink_strength_potential > 0:
-                return self.sink_strength_potential / \
-                        self._owner.sink_strength_potential
+            if self._owner.potential_sink_strength > 0:
+                return self.potential_sink_strength / \
+                        self._owner.potential_sink_strength
             else:
                 return 0
 
@@ -471,7 +472,7 @@ class SubOrgan(object):
     def update_age(self,dt=1):
         ''' Update the age of the organ -- and set the sink strength. '''
         self.age += dt
-        self.sink_strength_potential = self.get_sink_strength_potential()
+        self.potential_sink_strength = self.get_potential_sink_strength()
 
     #############
     # Copy-method
@@ -490,7 +491,7 @@ class SubOrgan(object):
         # carry over state (of basic types: float)
         duplicate.mass = self.mass
         duplicate.age = self.age
-        duplicate.sink_strength_potential = duplicate.get_sink_strength_potential()
+        duplicate.potential_sink_strength = duplicate.get_potential_sink_strength()
 
         return duplicate
 
@@ -512,42 +513,42 @@ class SubOrgan(object):
 class Stalk(SubOrgan):
     ''' Models a stalk.'''
     _name = 'stalk'
-    _prefix = _name
+    __prefix = _name
     default_parameters = DEFAULT_STALK_PARAMETERS
 
 class MesocarpFibers(SubOrgan):
     ''' Models a mesocarp fibers.'''
     _name = 'mesocarp_fibers'
-    _prefix = _name
+    __prefix = _name
     default_parameters = DEFAULT_MESOCARP_FIBERS_PARAMETERS
 
 class MesocarpOil(SubOrgan):
     ''' Models a mesocarp oil.'''
     _name = 'mesocarp_oil'
-    _prefix = _name
+    __prefix = _name
     default_parameters = DEFAULT_MESOCARP_OIL_PARAMETERS
 
 class Kernel(SubOrgan):
     ''' Models a kernel.'''
     _name = 'kernel'
-    _prefix = _name
+    __prefix = _name
     default_parameters = DEFAULT_KERNEL_PARAMETERS
 
 @add_dumps
 class Cohort(object):
-    '''An abstract base class for organ cohorts.
+    '''An abstract base class for inflorescence cohorts.
 
-    A cohort is represented by a "mean" organ,
+    A cohort is represented by a "mean" inflorescence,
     and a multiplicity denoting the number of
-    organs in the cohort.
+    inflorescences in the cohort.
 
     Concrete subclasses: Indeterminate, Male, Female.
 
     Key Properties:
         age : months after initiation
         age_of_differentiation : -
-        mass : mass of the mean organ
-        multiplicity : number of organs in cohort
+        mass : mass of the mean inflorescence
+        multiplicity : number of inflorescences in cohort
 
     '''
 
@@ -576,7 +577,7 @@ class Cohort(object):
         unit: '1/cohort'
     sink_strength:
         unit: 'kg_CH2O/month'
-    sink_strength_potential:
+    potential_sink_strength:
         unit: 'kg_CH2O/organ/month'
     relative_sink_strength:
         unit: '1'
@@ -619,9 +620,9 @@ class Cohort(object):
     ###############
 
     @property
-    def sink_strength_potential(self):
+    def potential_sink_strength(self):
         ''' The potential sink strength (kg_CH2O/month). '''
-        return sum([x.sink_strength_potential for x in self.components])
+        return sum([x.potential_sink_strength for x in self.components])
 
     def get_relative_sink_strength(self):
         ''' Sink strength relative to other organs (1), a partitioning fraction. '''
@@ -629,8 +630,8 @@ class Cohort(object):
             # assume it is the only one
             return 1
         else:
-            cohort_sink_strength = self.multiplicity*self.sink_strength_potential
-            total_sink_strength = 1000*self._manager.sink_strength_potential
+            cohort_sink_strength = self.multiplicity*self.potential_sink_strength
+            total_sink_strength = 1000*self._manager.potential_sink_strength
 
             if total_sink_strength == 0:
                 return 0
@@ -645,7 +646,7 @@ class Cohort(object):
 
         if self._manager is None:
             #proto-typing only
-            return self.sink_strength_potential*self.multiplicity
+            return self.potential_sink_strength*self.multiplicity
         else:
             # ton --> kg
             assim_growth_generative = 1000 * self._manager.assim_growth
@@ -733,7 +734,7 @@ class Cohort(object):
         ''' Returns a dict containing comprehensive info. '''
         d = self.to_dict()
         for component in self.components:
-            d.update(component.to_prefixed_dict())
+            d.update(component.to__prefixed_dict())
         return d
 
     ########
@@ -786,6 +787,8 @@ class Indeterminate(Cohort):
         # param
         self._abortion_fraction = self.parameters['abortion_fraction']['value']
         self.age_of_differentiation = self.parameters['age_of_differentiation']['value']
+
+        #self.parameters['age_of_differentiation']['value']
 
         self._female_fraction = 0.9
 
@@ -861,10 +864,10 @@ class Female(Cohort):
                 unit: 'month'
                 info: 'The start of the period in which inflorescence abortion occurs relative to the time of anthesis.'
                 source: 'Based on Adam et al. 2011, see fig 3.'
-            inflorescence_abortion_t1:
-                value: -2
+            inflorescence_abortion_dt:
+                value: 1
                 unit: 'month'
-                info: 'The end of the period in which inflorescence abortion occurs relative to the time of anthesis.'
+                info: 'The duration of the period in which inflorescence abortion occurs.'
                 source: 'Based on Adam et al. 2011, see fig 3.'
             bunch_failure_fraction:
                 value: 0.1
@@ -876,12 +879,12 @@ class Female(Cohort):
                 unit: 'month'
                 info: 'The start of the period in which bunch failure occurs relative to the time of anthesis.'
                 source: 'Based on Adam et al. 2011, see fig 3.'
-            bunch_failure_t1:
-                value: 3
+            bunch_failure_dt:
+                value: 1
                 unit: 'month'
-                info: 'The end of the period in which bunch failure occurs relative to the time of anthesis.'
+                info: 'The duration of the period in which bunch failure occurs.'
                 source: 'Based on Adam et al. 2011, see fig 3.'
-            anthesis_age:
+            month_of_anthesis:
                 value: 33
                 unit: 'month'
                 info: 'The age at which the anthesis takes place in terms of months after frond initiation.'
@@ -889,13 +892,13 @@ class Female(Cohort):
             moisture_content_deficit_bunch_failure_increase:
                 value: .8
                 unit: '1'
-                info: 'Increase in bunch failure fraction per soil moisture content decrease.'
+                info: 'Initial guess: less sensitive than sex ratio and infloresence abortion.'
                 source: 'Initial guess: less sensitive than sex ratio and bunch failure.'
             moisture_content_deficit_bunch_failure_threshold:
-                value: .2
+                value: .6
                 unit: '1'
                 info: 'Moisture content below wgucg bunch failure response sets in.'
-                source: 'Initial guess: less sensitive than sex ratio and bunch failure.'
+                source: 'Initial guess: less sensitive than sex ratio and infloresence abortion.'
             moisture_content_deficit_inflorescence_abortion_increase:
                 value: 1.
                 unit: '1/mm/month'
@@ -906,8 +909,8 @@ class Female(Cohort):
                 unit: '1'
                 info: 'Moisture content below which inflorescence abortion response sets in.'
                 source: 'Initial guess: less sensitive than sex ratio, more sensitive than bunch failure.'
-            age_of_maturity:
-                value: 6
+            month_of_maturity:
+                value: 40
                 unit: 'month'
                 info: 'The age at which the fruit is harvestible, in months after anthesis.'
                 source: 'Adam et al. 2011, see fig 3.'
@@ -930,15 +933,15 @@ class Female(Cohort):
         self.relative_sink_strength = 0
 
         # param
-        self._anthesis_age = self.parameters['anthesis_age']['value']
-        self._age_of_maturity = self._anthesis_age + self.parameters['age_of_maturity']['value']
+
+        self._month_of_anthesis = self.parameters['month_of_anthesis']['value']
+        self._month_of_maturity = self.parameters['month_of_maturity']['value']
 
         self._inflorescence_abortion_t0 = self.parameters['inflorescence_abortion_t0']['value']
-        self._inflorescence_abortion_t1 = self.parameters['inflorescence_abortion_t1']['value']
+        self._inflorescence_abortion_dt = self.parameters['inflorescence_abortion_dt']['value']
 
         self._bunch_failure_t0 = self.parameters['bunch_failure_t0']['value']
-        self._bunch_failure_t1 = self.parameters['bunch_failure_t1']['value']
-
+        self._bunch_failure_dt = self.parameters['bunch_failure_dt']['value']
 
         # proto-typical value
         self._water_deficit_ = 0
@@ -979,9 +982,14 @@ class Female(Cohort):
 
     @property
     def inflorescence_abortion_fraction(self):
-        t = self.age - self._anthesis_age
 
-        if (t >= self._inflorescence_abortion_t0) and (t < self._inflorescence_abortion_t1):
+        t = self.age - self._month_of_anthesis
+
+        t0 = self._inflorescence_abortion_t0
+        dt = self._inflorescence_abortion_dt
+        t1 = t0 + dt
+
+        if (t >= t0) and (t < t1):
             return self._inflorescence_abortion_fraction
         else:
             return 0
@@ -991,8 +999,9 @@ class Female(Cohort):
 
         base = self.parameters['inflorescence_abortion_fraction']['value']
 
-        t1 = self._inflorescence_abortion_t1
         t0 = self._inflorescence_abortion_t0
+        dt = self._inflorescence_abortion_dt
+        t1 = t0 + dt
 
         timespan =  t1-t0
 
@@ -1008,9 +1017,13 @@ class Female(Cohort):
     @property
     def bunch_failure_fraction(self):
 
-        t = self.age - self._anthesis_age
+        t = self.age - self._month_of_anthesis
 
-        if (t >= self._bunch_failure_t0) and (t < self._bunch_failure_t1):
+        t0 = self._bunch_failure_t0
+        dt = self._bunch_failure_dt
+        t1 = t0 + dt
+
+        if (t >= t0) and (t < t1):
             return self._bunch_failure_fraction
         else:
             return 0
@@ -1020,8 +1033,9 @@ class Female(Cohort):
 
         base = self.parameters['bunch_failure_fraction']['value']
 
-        t1 = self._bunch_failure_t1
         t0 = self._bunch_failure_t0
+        dt = self._bunch_failure_dt
+        t1 = t0 + dt
 
         timespan = t1-t0
 
@@ -1047,17 +1061,17 @@ class Female(Cohort):
     @property
     def trigger_flowering(self):
         ''' A boolean indicating whether "set_fruit" should be triggered. '''
-        return self.age > self._anthesis_age and not self.has_flowered
+        return self.age > self._month_of_anthesis and not self.has_flowered
 
     @property
     def is_harvestible(self):
         ''' Indicates whether this cohort is harvestible. '''
-        return self.age == self._age_of_maturity
+        return self.age == self._month_of_maturity
 
     @property
     def delete(self):
         ''' Indicates whether this cohort may be discarded (metabolically inactive). '''
-        return self.age > self._age_of_maturity
+        return self.age > self._month_of_maturity
 
     @property
     def mesocarp_oil_content(self):
@@ -1152,10 +1166,12 @@ class Organs(object):
         unit: 'month'
     multiplicity:
         unit: '1/ha'
-    sink_strength_potential:
+    potential_sink_strength:
         unit: 'tonne_DM/ha/month'
     bunch_weight:
         unit: 'kg_DM'
+    bunch_weight_fresh:
+        unit: 'kg'
     bunch_count:
         unit: '1/ha/month'
     onset_multiplicity_factor:
@@ -1194,7 +1210,7 @@ class Organs(object):
         source: 'Calibration to measured bunch counts --- ask the author.'
         uncertainty: 20%
     female_fraction_young:
-        value: [0.6,3]
+        value: [0.95,3]
         unit: '1,YAP'
         info: 'The fraction female for a "young" palm. - 3 YAP, note we are explicitly qualitative here.'
         source: 'Based on the associated qualitative statement found on p.26 in Advances in Oil Palm Research Volume 1, 2000.'
@@ -1219,9 +1235,7 @@ class Organs(object):
     '''
     )
 
-    _name = 'organs'
-    _prefix = _name
-    _version = '0.0'
+    _prefix = 'organs'
 
     def __init__(self,palm=None):
         self.cohorts = []
@@ -1230,7 +1244,7 @@ class Organs(object):
         # rate
         self._assim_growth = 0
         self.assim_growth = 0
-        self.sink_strength_potential = 0
+        self.potential_sink_strength = 0
         self._initiation_rate = 0
 
         # param
@@ -1256,12 +1270,16 @@ class Organs(object):
             return self._palm.soil.moisture_content
 
     @property
-    def _age(self):
+    def _MAP(self):
         ''' The palm age in months after planting. '''
         if self._palm is None:
             return 40
         else:
             return self._palm.MAP
+
+    @property
+    def _YAP(self):
+        return self._MAP//12
 
     ##############
     # Inter-facing
@@ -1269,7 +1287,7 @@ class Organs(object):
     @property
     def _planting_density(self):
         if self._palm is None:
-            return GAUGE_PLANTING_DENSITY
+            return DEFAULT_PLANTING_DENSITY
         else:
             return self._palm.planting_density
 
@@ -1289,9 +1307,9 @@ class Organs(object):
     ###############
     # Sink-strength
     ###############
-    def get_sink_strength_potential(self):
+    def get_potential_sink_strength(self):
         ''' The total potential sink strength (tonne_CH2O/ha/month). '''
-        return 0.001*sum([x.sink_strength_potential*x.multiplicity for x in self.cohorts])
+        return 0.001*sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
 
     def get_assim_growth(self):
         ''' The assimilates for generative growth. (kg_CH2O/month) '''
@@ -1337,7 +1355,7 @@ class Organs(object):
         # Potential/relative SS is independent of RSS
         # Potential determines realized SS thus should be set
         # before calculating realized SS.
-        self.sink_strength_potential = self.get_sink_strength_potential()
+        self.potential_sink_strength = self.get_potential_sink_strength()
         self.set_relative_sink_strengths()
 
     def set_relative_sink_strengths(self):
@@ -1447,6 +1465,11 @@ class Organs(object):
         else:
             return 1000*self.bunch_production/self.bunch_count
 
+    @property
+    def bunch_weight_fresh(self):
+        ratio = self.parameters['bunch_FM_to_DM_ratio']['value']
+        return ratio*self.bunch_weight
+
     ##################
     # Abortion details
     ##################
@@ -1510,7 +1533,7 @@ class Organs(object):
         y1,x1 = self.parameters['female_fraction_young']['value']
         y2,x2 = self.parameters['female_fraction_old']['value']
 
-        x = self._age/12
+        x = self._MAP/12
 
         c = (y2-y1)/(x2-x1)
 
@@ -1544,7 +1567,7 @@ class Organs(object):
     @property
     def onset_multiplicity_factor(self):
         ''' Mimics sigmoidal on-set of number of inflorescence. '''
-        return sigmoid(self._age,16,.1)
+        return sigmoid(self._MAP,16,.1)
 
     @property
     def initiation_rate(self):
@@ -1580,11 +1603,12 @@ class Organs(object):
         ''' The variables to output upon calling "to_dict". '''
         return ['mass',
                 'bunch_weight',
+                'bunch_weight_fresh',
                 'bunch_count',
                 'frond_initiation_rate',
                 'onset_multiplicity_factor',
                 #'multiplicity_next_cohort',
-                'sink_strength_potential',
+                'potential_sink_strength',
                 'bunch_production',
                 #'initial_multiplicity',
                 'yield_FM_yearly',
