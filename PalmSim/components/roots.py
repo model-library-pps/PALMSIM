@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-''' Contains the root modelling class. '''
+''' Contains the root modelling. '''
 
 import yaml
 import numpy as np

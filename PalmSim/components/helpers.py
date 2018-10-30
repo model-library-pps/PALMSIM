@@ -23,18 +23,22 @@ def hygienic(decorator):
 
 @hygienic
 def add_dumps(klass):
-    ''' Class decorator providing data dump methods (incl. a __repr__). '''
+    ''' Add data dump functionality to a class.
 
-    _attribute_sort_order = ['mass','assim','maint']
+    Most importantly adds the "to_dict" method which
+    when called on an object puts the objects state/rate variables
+    in a dictionary.
+
+    '''
 
     @property
-    def _instance_variables(self):
+    def _variables(self):
         return [attr for attr in dir(self) if not attr.startswith('_')]
 
     def to_dict(self, prefixed = False):
         ''' Returns a dict of all float-like instance variables.'''
 
-        attributes = self._instance_variables
+        attributes = self._variables
 
         units = self.units
 
@@ -53,7 +57,7 @@ def add_dumps(klass):
                     unit = units[key]
                     d['{:} ({:})'.format(key,unit)] = value
                 else:
-                    d[key] = value
+                    d['{:} ({:})'.format(key,'?')] = value
             else:
                 pass
 
@@ -71,10 +75,6 @@ def add_dumps(klass):
         else:
             parameters = self.parameters
         print(yaml.dump(parameters,default_flow_style=False))
-
-    @property
-    def units(self):
-        return self.variable_units
 
     def __repr__(self):
 
@@ -101,11 +101,10 @@ def add_dumps(klass):
 
         return '\n'.join(lines)
 
-    decorations =  [('_instance_variables',_instance_variables),
-                    ('_attribute_sort_order',_attribute_sort_order),
+
+    decorations =  [('_variables',_variables),
                     ('print_parameters',print_parameters),
-                    ('to_dict',to_dict),
-                    ('units',units),]
+                    ('to_dict',to_dict)]
 
     decorations_to_add = {k:v for (k,v) in decorations if k not in dir(klass)}
     decorations_to_add['__repr__'] = __repr__

@@ -269,7 +269,7 @@ class SubOrgan(object):
         potential_mass : the potential mass.
         potential_sink_strength : potential sink strength.
         relative_sink_strength : sink strength relative to sibling sub-organs.
-        _owner : reference to the parent organ (the owner).
+        _cohort : reference to the parent organ (the cohort).
 
     Is contained in the (mean) organ which co-determines a cohort.
 
@@ -329,11 +329,11 @@ class SubOrgan(object):
         ''' Initialization.
 
         Each organ element may belong to an organ
-        via the "_owner" property.
+        via the "_cohort" property.
 
         '''
         self.parameters = self.default_parameters
-        self._owner = organ
+        self._cohort = organ
 
         if potential_mass is None:
             self.potential_mass = self.get_potential_mass()
@@ -376,10 +376,10 @@ class SubOrgan(object):
         '''
         y0 = self.parameters['potential_mass_t0']['value']
 
-        if self._owner is None:
+        if self._cohort is None:
             return y1
         else:
-            MAP = self._owner._MAP
+            MAP = self._cohort._MAP
             y1 = self.parameters['potential_mass_t1']['value']
 
             # here hard-coded..
@@ -418,25 +418,25 @@ class SubOrgan(object):
     @property
     def relative_sink_strength(self):
         ''' The sink strength relative to the other elements (1). '''
-        if self._owner is None:
+        if self._cohort is None:
             # assume it is stand-alone
             return 1
         else:
-            if self._owner.potential_sink_strength > 0:
+            if self._cohort.potential_sink_strength > 0:
                 return self.potential_sink_strength / \
-                        self._owner.potential_sink_strength
+                        self._cohort.potential_sink_strength
             else:
                 return 0
 
     @property
     def assim_growth(self):
         ''' The realised sink strength (kg CH2O/month). '''
-        if self._owner is None:
+        if self._cohort is None:
             # assume proto-typing
             return self._assim_growth
         else:
             return self.relative_sink_strength * \
-                    self._owner.assim_growth_organ
+                    self._cohort.assim_growth_organ
 
     ######
     # Mass
@@ -461,7 +461,7 @@ class SubOrgan(object):
     # Update
     ########
 
-    # Note, updating is managed by the owner.
+    # Note, updating is managed by the cohort.
     # -- since the realised mass growth
     # is context sensitive! (sibling sub-organs).
 
@@ -499,12 +499,12 @@ class SubOrgan(object):
     # Trivia
     #########
     @property
-    def owner_age(self):
+    def cohort_age(self):
         ''' The age of the owning organ. '''
-        if self._owner is None:
+        if self._cohort is None:
             return 0
         else:
-            return self._owner.age
+            return self._cohort.age
 
     @property
     def variable_units(self):
@@ -809,7 +809,7 @@ class Indeterminate(Cohort):
         ''' Converts the indeterminate to a male inflorescence. '''
         m = Male(self._manager)
         m.stalk = self.stalk.copy()
-        m.stalk._owner = m
+        m.stalk._cohort = m
         m.components = [m.stalk]
         m.age = self.age
 
@@ -828,7 +828,7 @@ class Indeterminate(Cohort):
 
         # Pass on cohort mean organ state/components
         m.stalk = self.stalk.copy()
-        m.stalk._owner = m
+        m.stalk._cohort = m
         m.components = [m.stalk]
         m.age = self.age
 
