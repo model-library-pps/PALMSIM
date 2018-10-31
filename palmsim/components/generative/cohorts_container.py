@@ -1,5 +1,8 @@
 
 from ..helpers import add_dumps
+from ..helpers import sigmoid
+
+from .cohorts import Indeterminate
 
 import yaml
 
@@ -13,26 +16,73 @@ class Organs(object):
 
     '''
 
+    parameters = yaml.load('''
+
+        soil_moisture_specific_female_fraction_decrease:
+            value: 1.5
+            unit: '1'
+            info: 'Decrease of the female fraction per unit drop of soil moisture content past the threshold.'
+            source: 'Calibration.'
+            uncertainty: 20%
+
+        female_fraction_decrease_threshold:
+            value: .8
+            unit: '1'
+            info: 'The soil moisture content below which sex ratio response sets in.'
+            source: 'Calibration.'
+            uncertainty: 20%
+
+        female_fraction_young:
+            value: [0.95,3]
+            unit: '1,YAP'
+            info: 'The fraction female for a "young" palm. - 3 YAP, note we are explicitly qualitative here.'
+            source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
+            uncertainty: 20%
+
+        female_fraction_old:
+            value: [0.3,30]
+            unit: '1,YAP'
+            info: 'The fraction female for a "young" palm.'
+            source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
+            uncertainty: 20%
+
+        female_fraction_minimum:
+            value: 0.1
+            unit: '1,YAP'
+            info: 'The minimum fraction female --- expected to be a plant characteristic.'
+            source: 'Calibration - currently an ad hoc estimate based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
+            uncertainty: 20%
+
+        bunch_FM_to_DM_ratio:
+            value: 2
+            unit: '1'
+            info: 'The fresh to dry mass of a bunch.'
+            source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
+
+        '''
+    )
+
     units = yaml.load('''
 
-        assim_growth                    : 'tonne_DM/ha/month'
-        bunch_production                : 'tonne_DM/ha/month'
+        assim_growth                    : 't_DM/ha/month'
+        bunch_production                : 't_DM/ha/month'
         count                           : '1/ha'
         count_females                   : '1/ha'
         count_indeterminates            : '1/ha'
         count_males                     : '1/ha'
         fraction_initiated              : '1'
         frond_initiation_rate           : '1/palm/month'
+        initiation_rate                 : '1/palm/month'
         initial_multiplicity            : '1/cohort'
-        maintenance_requirement         : 'tonne_DM/month'
-        mass                            : 'tonne_DM/ha'
-        mass_females                    : 'tonne_DM/ha'
-        mass_indeterminates             : 'tonne_DM/ha'
-        mass_males                      : 'tonne_DM/ha'
+        maintenance_requirement         : 't_DM/month'
+        mass                            : 't_DM/ha'
+        mass_females                    : 't_DM/ha'
+        mass_indeterminates             : 't_DM/ha'
+        mass_males                      : 't_DM/ha'
         max_age                         : 'month'
         mean_age                        : 'month'
         multiplicity                    : '1/ha'
-        potential_sink_strength         : 'tonne_DM/ha/month'
+        potential_sink_strength         : 't_DM/ha/month'
         bunch_weight                    : 'kg_DM'
         bunch_weight_fresh              : 'kg'
         bunch_count                     : '1/ha/month'
@@ -49,53 +99,7 @@ class Organs(object):
 
     ''')
 
-    parameters = yaml.load('''
-
-    soil_moisture_specific_female_fraction_decrease:
-        value: 1.5
-        unit: '1'
-        info: 'Decrease of the female fraction per unit drop of soil moisture content past the threshold.'
-        source: 'Calibration.'
-        uncertainty: 20%
-
-    female_fraction_decrease_threshold:
-        value: .8
-        unit: '1'
-        info: 'The soil moisture content below which sex ratio response sets in.'
-        source: 'Calibration.'
-        uncertainty: 20%
-
-    female_fraction_young:
-        value: [0.95,3]
-        unit: '1,YAP'
-        info: 'The fraction female for a "young" palm. - 3 YAP, note we are explicitly qualitative here.'
-        source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
-        uncertainty: 20%
-
-    female_fraction_old:
-        value: [0.3,30]
-        unit: '1,YAP'
-        info: 'The fraction female for a "young" palm.'
-        source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
-        uncertainty: 20%
-
-    female_fraction_minimum:
-        value: 0.1
-        unit: '1,YAP'
-        info: 'The minimum fraction female --- expected to be a plant characteristic.'
-        source: 'Calibration - currently an ad hoc estimate based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
-        uncertainty: 20%
-
-    bunch_FM_to_DM_ratio:
-        value: 2
-        unit: '1'
-        info: 'The fresh to dry mass of a bunch.'
-        source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
-
-    '''
-    )
-
-    _prefix = 'organs'
+    _prefix = 'generative'
 
     def __init__(self,palm=None):
 
@@ -115,6 +119,7 @@ class Organs(object):
     def _water_deficit(self):
         ''' The water deficit - relative to the critical deficit.'''
         if self._palm is None:
+
             return 0
         else:
             return self._palm.soil.critical_deficit_exceedance
@@ -123,6 +128,7 @@ class Organs(object):
     def _soil_moisture_content(self):
         ''' The water deficit - relative to the critical deficit.'''
         if self._palm is None:
+
             return 1
         else:
             return self._palm.soil.moisture_content
@@ -131,6 +137,7 @@ class Organs(object):
     def _MAP(self):
         ''' The palm age in months after planting. '''
         if self._palm is None:
+
             return 40
         else:
             return self._palm.MAP
@@ -206,9 +213,9 @@ class Organs(object):
         #   - Female's past harvestible age
         #   - Empty cohorts (multiplicity ~= 0)
 
-        self.to_delete = [x for x in self.cohorts if x.delete]
+        self.to_delete = [x for x in self.cohorts if x.is_deletable]
 
-        self.cohorts = [x for x in self.cohorts if not x.delete]
+        self.cohorts = [x for x in self.cohorts if not x.is_deletable]
 
         # Potential/relative SS is independent of RSS
         # Potential determines realized SS thus should be set
@@ -250,7 +257,7 @@ class Organs(object):
     def update_new_cohorts(self,dt=1):
         # introduce new cohorts
 
-        new_cohort = Indeterminate(manager=self)
+        new_cohort = Indeterminate(container=self)
         new_cohort.multiplicity = self.initiation_rate*dt
 
         self.cohorts.append(new_cohort)
@@ -260,7 +267,7 @@ class Organs(object):
     ################
     @property
     def mass(self):
-        ''' The total generative mass (tonne_DM/ha). '''
+        ''' The total generative mass (t_DM/ha). '''
         temp = [x.multiplicity*x.mass for x in self.cohorts]
         return 0.001*sum(temp)
 
@@ -300,7 +307,7 @@ class Organs(object):
 
     @property
     def bunch_production(self):
-        '''(tonne_DM/month)'''
+        '''(t_DM/month)'''
         return 0.001*sum([x.multiplicity*x.mass for x in self.bunches])
 
     @property
@@ -312,7 +319,7 @@ class Organs(object):
 
     @property
     def bunch_count(self):
-        '''(tonne_DM/month)'''
+        '''(t_DM/month)'''
         return sum([x.multiplicity for x in self.bunches])
 
     @property
@@ -417,7 +424,6 @@ class Organs(object):
         minimum = self.parameters['female_fraction_minimum']['value']
 
         return min(max(minimum,modifier*self._female_fraction),1)
-
 
     #############
     # New cohorts

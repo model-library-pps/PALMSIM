@@ -106,21 +106,24 @@ class IRHOSoil(object):
     ''')
 
     units = yaml.load('''
-    available_water: 'mm'
-    available_water_change_monthly: 'mm/month'
-    drainage_monthly: 'mm/month'
-    ET_monthly: 'mm/month'
-    conversion_efficiency_limiter: '1'
-    water_deficit: 'mm'
-    water_contained: 'mm'
-    raindays: 'days/month'
-    rainfall_monthly: 'mm/month'
-    critical_deficit_exceedance: 'mm'
-    critical_deficit: 'mm'
-    ET_monthly_potential: 'mm'
-    moisture_content: '1'
-    relative_transpiration_rate: '1'
-    water_holding_capacity: 'mm'
+
+        available_water                   : 'mm'
+        drainage                          : 'mm/month'
+        conversion_efficiency_limiter     : '1'
+        water_deficit                     : 'mm'
+        water_contained                   : 'mm'
+        raindays                          : 'days/month'
+        rainfall_monthly                  : 'mm/month'
+        critical_deficit_exceedance       : 'mm'
+        critical_deficit                  : 'mm'
+        ET_monthly_potential              : 'mm'
+        moisture_content                  : '1'
+        relative_transpiration_rate       : '1'
+        water_holding_capacity            : 'mm'
+        available_water_change_rate       : 'mm/month'
+        available_water_change_rate_daily : 'mm/day'
+        evapotranspiration                : 'mm/month'
+
     ''')
 
     _prefix = 'soil'
@@ -212,7 +215,7 @@ class IRHOSoil(object):
     def _update(self,dt):
         ''' Update by a day. '''
 
-        self.available_water += self.available_water_change_daily*dt
+        self.available_water += self.available_water_change_rate_daily*dt
 
     #~~~~~~~~~~~~~~~~
 

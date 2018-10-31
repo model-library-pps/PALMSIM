@@ -11,6 +11,19 @@ from scipy import interpolate
 
 import sys
 
+def sigmoid(x,x0,k):
+    """ A sigmoid f(x).
+
+    Properties:
+
+        f(x0) = 0
+        f'(x0) = k
+        f(-inf) = 0
+        f(+inf) = 1
+
+    """
+    return 1/(1+np.exp(-k*(x-x0)))
+
 def hygienic(decorator):
     ''' Decorator decorator, providies hygiene; preservation of basic attributes.'''
     def new_decorator(obj):
@@ -39,7 +52,6 @@ def add_dumps(klass):
         ''' Returns a dict of all float-like instance variables.'''
 
         attributes = self._variables
-
         units = self.units
 
         d = {}

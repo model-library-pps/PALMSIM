@@ -214,7 +214,7 @@ class Fronds(object):
         assim_growth: 't_CH2O/ha/month'
         assim_produced: 't_CH2O/ha/month'
         count: '1/ha'
-        count_alt: '1/palm'
+        count_per_palm: '1/palm'
         fraction_intercepted: '1'
         intercepted_solar_energy: 'TJ/ha/month'
         total_leaf_area: 'm**2/ha'

@@ -1,5 +1,6 @@
 
 from ..helpers import add_dumps
+from ..constants import DAYS_PER_MONTH
 
 import yaml
 
@@ -58,8 +59,8 @@ class BunchComponent(object):
         relative_sink_strength  : sink strength relative to sibling sub-organs.
         _cohort                  : reference to the parent organ (the cohort).
 
-	Notes
-	-----
+    Notes
+    -----
     Each bunch component is associated with an inflorescence cohort.
 
     The potential sink strength is modelled as a function of age -
@@ -85,21 +86,21 @@ class BunchComponent(object):
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
 
-       """)
+        """)
 
     units = yaml.load("""
 
-	    mass                             : 'kg_DM'
-	    potential_mass                   : 'kg_DM'
-	    age                              : 'month'
-	    assim_growth                     : 'kg_CH2O/month'
-	    conversion_efficiency            : 'g_DM/g_CH2O'
-	    specific_maintenance_requirement : 'tonne_CH2O/tonne_DM/day'
-	    maintenance_requirement          : 'kg_CH2O/month'
-	    mass_growth_rate                 : 'kg_DM/month'
-	    mass_growth_rate_potential       : 'kg_DM/month'
-	    relative_sink_strength           : '1'
-	    potential_sink_strength          : 'kg_CH2O/month'
+        mass                             : 'kg_DM'
+        potential_mass                   : 'kg_DM'
+        age                              : 'month'
+        assim_growth                     : 'kg_CH2O/month'
+        conversion_efficiency            : 'g_DM/g_CH2O'
+        specific_maintenance_requirement : 'tonne_CH2O/tonne_DM/day'
+        maintenance_requirement          : 'kg_CH2O/month'
+        mass_growth_rate                 : 'kg_DM/month'
+        mass_growth_rate_potential       : 'kg_DM/month'
+        relative_sink_strength           : '1'
+        potential_sink_strength          : 'kg_CH2O/month'
 
     """)
 
@@ -146,7 +147,14 @@ class BunchComponent(object):
         y = (y1-y0)/(x1-x0)*(x-x0) + y0 .
 
         """
-        y0 = self.parameters['potential_mass_t0']['value']
+
+        if 'potential_mass_t0' in self.parameters:
+
+            y0 = self.parameters['potential_mass_t0']['value']
+
+        else:
+            print(self.__class__.__name__)
+            print(list(self.parameters))
 
         if self._cohort is None:
             return y1
@@ -208,8 +216,9 @@ class BunchComponent(object):
             # assume proto-typing
             return self._assim_growth
         else:
-            return self.relative_sink_strength * \
-                    self._cohort.assim_growth_cohort
+            # total assim inflow per representative mean organ
+            total = self._cohort.assim_growth_organ
+            return self.relative_sink_strength * total
 
 #~~~~~~~~~~~~~~~~
 
@@ -256,10 +265,10 @@ class BunchComponent(object):
     def copy(self):
         """ Makes a copy of a bunch component.
 
-		This is used in the "sex determination" stage where a
-		single indeterminate cohort is split in a male and female cohort:
-		we make a copies of the bunch component(s) (the stalk)
-		and assign these to the associated male and female cohort.
+        This is used in the "sex determination" stage where a
+        single indeterminate cohort is split in a male and female cohort:
+        we make a copies of the bunch component(s) (the stalk)
+        and assign these to the associated male and female cohort.
 
         """
 
@@ -288,19 +297,14 @@ class BunchComponent(object):
         else:
             return self._cohort.age
 
-    @property
-    def variable_units(self):
-        return {k:self._variable_metadata[k]['unit'] for k in self._variable_metadata}
-
-
-
 #~~~~~~~~~~~~~~~~
-
 
 class Stalk(BunchComponent):
     """ Models an inflorescence's stalk."""
+
     _prefix = 'stalk'
-    default_parameters = yaml.load("""
+
+    parameters = yaml.load("""
 
         specific_maintenance:
             value: 0.0022
@@ -347,7 +351,9 @@ class Stalk(BunchComponent):
 
 class MesocarpFibers(BunchComponent):
     """ Models an inflorescence's mesocarp fibers."""
+
     _prefix = 'mesocarp_fibers'
+
     parameters = yaml.load("""
 
         specific_maintenance:
@@ -395,7 +401,9 @@ class MesocarpFibers(BunchComponent):
 
 class MesocarpOil(BunchComponent):
     """ Models an inflorescence's mesocarp oil. """
+
     _prefix = 'mesocarp_oil'
+
     parameters = yaml.load("""
         specific_maintenance:
             value: 0.0022
@@ -445,7 +453,8 @@ class Kernels(BunchComponent):
     """ Models an inflorescence's kernels."""
 
     _prefix = 'kernel'
-	parameters = yaml.load("""
+
+    parameters = yaml.load("""
 
         specific_maintenance:
             value: 0.0022

@@ -74,7 +74,7 @@ class Weather(object):
 
         # Mock-up values - only used
         # if no time-series are supplied.
-        self._radiation_series_mean_ = 12
+        self._radiation_series_mean_ = 10
         self._raindays_series_mean_ = 14
         self._rainfall_series_mean_ = 150
 

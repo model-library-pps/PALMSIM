@@ -76,25 +76,27 @@ class Roots(object):
     ''')
 
     initial_values = yaml.load('''
-    mass:
-        value: 4
-        uncertainty: 50%
-        unit: 't_DM/palm'
-        info: 'Initial weight of the plant part.'
-        source: 'Based on Corley, 1971.'
+
+        mass:
+            value: 4
+            uncertainty: 50%
+            unit: 't_DM/palm'
+            info: 'Initial weight of the plant part.'
+            source: 'Based on Corley, 1971.'
     ''')
 
     units = yaml.load('''
 
-    assim_growth: 't_CH2O/ha/mo'
-    maintenance_requirement: 't_CH2O/ha/mo'
-    mass: 't_DM/ha'
-    mass_change_rate: 't_DM/ha/mo'
-    mass_growth_rate: 't_DM/ha/mo'
-    mass_loss_rate: 't_DM/ha/mo'
-    potential_growth_rate: 't_DM/ha/mo'
-    potential_growth_rate_per_palm : 'kg_DM/ha/mo'
-    potential_sink_strength: 't_CH2O/ha/mo'
+        assim_growth: 't_CH2O/ha/mo'
+        maintenance_requirement: 't_CH2O/ha/mo'
+        mass: 't_DM/ha'
+        mass_per_palm: 'kg_DM/palm'
+        mass_change_rate: 't_DM/ha/mo'
+        mass_growth_rate: 't_DM/ha/mo'
+        mass_loss_rate: 't_DM/ha/mo'
+        potential_growth_rate: 't_DM/ha/mo'
+        potential_growth_rate_per_palm : 'kg_DM/ha/mo'
+        potential_sink_strength: 't_CH2O/ha/mo'
 
     ''')
 
@@ -186,6 +188,13 @@ class Roots(object):
         b = self.parameters['loss_param_b']['value']
 
         return  a*mass + b
+
+    #~~~~~~~~~~~~~~~~~~
+
+    @property
+    def mass_per_palm(self):
+        ''' Mass change rate (kg_DM/palm). '''
+        return 1000*(1/self._planting_density)*self.mass
 
     #~~~~~~~~~~~~~~~~~~
 
