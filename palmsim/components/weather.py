@@ -120,6 +120,14 @@ class Weather(object):
         else:
             return self.radiation_series_mean
 
+    @radiation.setter
+    def radiation(self, value):
+
+        if isinstance(value, float):
+            self._radiation_series_mean_ = value
+        else:
+            raise ValueError
+
     @property
     def rainfall(self):
         '''Monthly rainfall (mm/mo). '''
