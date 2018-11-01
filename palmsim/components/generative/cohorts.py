@@ -255,7 +255,7 @@ class Indeterminate(Cohort):
 
     @property
     def should_differentiate(self):
-        return self.age == self.age_of_differentiation
+        return self.age >= self.age_of_differentiation
 
     @property
     def components(self):
