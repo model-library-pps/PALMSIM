@@ -70,6 +70,7 @@ class Organs(object):
         count_females                   : '1/ha'
         count_indeterminates            : '1/ha'
         count_males                     : '1/ha'
+        EFB_production                  : 't DM/ha/month'
         fraction_initiated              : '1'
         frond_initiation_rate           : '1/palm/month'
         initiation_rate                 : '1/palm/month'
@@ -304,6 +305,15 @@ class Organs(object):
             return res/bunch_count
         else:
             return 0
+
+    @property
+    def EFB_production(self):
+        """ (t_DM/ha/mo). """
+        res = 0
+        for bunch in self.bunches:
+            res += bunch.stalk.mass + bunch.mesocarp_fibers.mass
+
+        return res
 
     @property
     def bunch_production(self):

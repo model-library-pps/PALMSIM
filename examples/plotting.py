@@ -32,8 +32,8 @@ def tsplot(df,c,ax=None,window=12,figsize=(12,4)):
 
     return f,ax
 
-def add_highlight(ax,x,opacity=0.5,color='orange',label=None):
+def add_highlight(ax,x,alpha=0.5,color='orange',label=None):
     ''' Add a fill-between to a graph at location x. '''
     ymin,ymax = ax.get_ylim()
-    ax.fill_between(x,ymin,ymax,alpha=opacity,label=label,color=color)
+    ax.fill_between(x,ymin,ymax,alpha=alpha,label=label,color=color)
     return ax
