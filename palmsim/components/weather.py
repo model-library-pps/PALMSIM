@@ -194,7 +194,7 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month):v for k,v in series.iteritems()}
+            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
 
             self._rainfall_series = d
             self._rainfall_series_mean = float(series.mean())
@@ -222,7 +222,7 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month):v for k,v in series.iteritems()}
+            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
 
             self._radiation_series = d
             self._radiation_series_mean = float(series.mean())
@@ -250,7 +250,7 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month):v for k,v in series.iteritems()}
+            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
 
             self._raindays_series = d
             self._raindays_series_mean = float(series.mean())
