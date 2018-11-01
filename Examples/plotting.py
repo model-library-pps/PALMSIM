@@ -26,7 +26,7 @@ def tsplot(df,c,ax=None,window=12,figsize=(12,4)):
     ax.plot(s,label='monthly mean')
 
     s_ = s.rolling(window).mean().shift(-int(0.5*window))
-    ax.plot(s_,label='{:}-month window mean'.format(window),color='black')
+    ax.plot(s_,label='rolling mean (1 yr)'.format(window),color='black')
     ax.legend(fontsize=8)
     ax.set_ylabel(c)
 

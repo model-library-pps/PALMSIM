@@ -115,7 +115,7 @@ class Weather(object):
         ''' Mean monthly visible radiation (MJ/m**2/day). '''
         t = self._date_tuple
         s = self.radiation_series
-        if t and s:
+        if (t and s) and (t in s):
             return s[t]
         else:
             return self.radiation_series_mean
@@ -125,7 +125,7 @@ class Weather(object):
         '''Monthly rainfall (mm/mo). '''
         t = self._date_tuple
         s = self.rainfall_series
-        if t and s:
+        if (t and s) and (t in s):
             return s[t]
         else:
             return self.rainfall_series_mean
@@ -135,7 +135,7 @@ class Weather(object):
         '''Monthly raindays (1). '''
         t = self._date_tuple
         s = self.raindays_series
-        if t and s:
+        if (t and s) and (t in s):
             return s[t]
         else:
             return self.raindays_series_mean

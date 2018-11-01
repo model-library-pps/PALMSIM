@@ -322,7 +322,6 @@ class PalmField():
 
         df.columns = [my_replace(s) for s in df.columns]
 
-        df['yield FM yearly (tonne FM/ha/year)'] = df['organs yield FM yearly (tonne FM/ha/year)']
         return df
 
     ########

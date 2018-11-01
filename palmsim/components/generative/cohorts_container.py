@@ -8,15 +8,15 @@ import yaml
 
 @add_dumps
 class Organs(object):
-    ''' The interface between the palm and the cohorts.
+    """ The interface between the palm and the cohorts.
 
     Acts like a manager i.e. manages the flow of assimilates
     to the cohorts, handles the initiation of new cohorts,
     deletal of in-active cohorts, etc.
 
-    '''
+    """
 
-    parameters = yaml.load('''
+    parameters = yaml.load("""
 
         soil_moisture_specific_female_fraction_decrease:
             value: 1.5
@@ -59,10 +59,10 @@ class Organs(object):
             info: 'The fresh to dry mass of a bunch.'
             source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
 
-        '''
+        """
     )
 
-    units = yaml.load('''
+    units = yaml.load("""
 
         assim_growth                    : 't_DM/ha/month'
         bunch_production                : 't_DM/ha/month'
@@ -91,13 +91,13 @@ class Organs(object):
         inflorescence_abortion_fraction : '1'
         number_of_cohorts               : '1'
         female_fraction                 : '1'
+        FFB_production                  : 't/ha/yr'
         assim_growth_females            : 'tonne_CH2O/ha/month'
         assim_growth_indeterminates     : 'tonne_CH2O/ha/month'
         assim_growth_males              : 'tonne_CH2O/ha/month'
         mesocarp_oil_content            : '1'
-        yield_FM_yearly                 : 'tonne_FM/ha/year'
 
-    ''')
+    """)
 
     _prefix = 'generative'
 
@@ -117,7 +117,7 @@ class Organs(object):
 
     @property
     def _water_deficit(self):
-        ''' The water deficit - relative to the critical deficit.'''
+        """ The water deficit - relative to the critical deficit."""
         if self._palm is None:
 
             return 0
@@ -126,7 +126,7 @@ class Organs(object):
 
     @property
     def _soil_moisture_content(self):
-        ''' The water deficit - relative to the critical deficit.'''
+        """ The water deficit - relative to the critical deficit."""
         if self._palm is None:
 
             return 1
@@ -135,7 +135,7 @@ class Organs(object):
 
     @property
     def _MAP(self):
-        ''' The palm age in months after planting. '''
+        """ The palm age in months after planting. """
         if self._palm is None:
 
             return 40
@@ -158,7 +158,7 @@ class Organs(object):
 
     @property
     def frond_initiation_rate(self):
-        ''' New indeterminate cohorts (1/ha/month). '''
+        """ New indeterminate cohorts (1/ha/month). """
         if self._palm is None:
             return 0
         else:
@@ -166,18 +166,18 @@ class Organs(object):
 
     @property
     def maintenance_requirement(self):
-        ''' The generative maintenance requirement. '''
+        """ The generative maintenance requirement. """
         return 0.001*sum([x.maintenance_requirement*x.multiplicity for x in self.cohorts])
 
     ###############
     # Sink-strength
     ###############
     def get_potential_sink_strength(self):
-        ''' The total potential sink strength (tonne_CH2O/ha/month). '''
+        """ The total potential sink strength (tonne_CH2O/ha/month). """
         return 0.001*sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
 
     def get_assim_growth(self):
-        ''' The assimilates for generative growth. (kg_CH2O/month) '''
+        """ The assimilates for generative growth. (kg_CH2O/month) """
         if self._palm is None:
             return self._assim_growth
         else:
@@ -224,17 +224,17 @@ class Organs(object):
         self.set_relative_sink_strengths()
 
     def set_relative_sink_strengths(self):
-        ''' Sets the relative sink strengh of the cohorts. '''
+        """ Sets the relative sink strengh of the cohorts. """
         for cohort in self.cohorts:
             cohort.set_relative_sink_strength()
 
     def update_existing_cohorts(self,dt):
-        ''' Updates the existing cohorts. '''
+        """ Updates the existing cohorts. """
         for cohort in self.cohorts:
             cohort.update(dt=dt)
 
     def update_sex(self):
-        ''' Updates the cohorts by applying sex differentiation. '''
+        """ Updates the cohorts by applying sex differentiation. """
 
         cohorts_ = []
 
@@ -267,7 +267,7 @@ class Organs(object):
     ################
     @property
     def mass(self):
-        ''' The total generative mass (t_DM/ha). '''
+        """ The total generative mass (t_DM/ha). """
         temp = [x.multiplicity*x.mass for x in self.cohorts]
         return 0.001*sum(temp)
 
@@ -280,17 +280,17 @@ class Organs(object):
 
     @property
     def females(self):
-        ''' Female cohorts. '''
+        """ Female cohorts. """
         return [x for x in self.cohorts if  x.sex == 'female']
 
     @property
     def males(self):
-        ''' Male cohorts. '''
+        """ Male cohorts. """
         return [x for x in self.cohorts if  x.sex == 'male']
 
     @property
     def indeterminates(self):
-        ''' Indeterminate cohorts. '''
+        """ Indeterminate cohorts. """
         return [x for x in self.cohorts if  x.sex == 'indeterminate']
 
     ###############
@@ -307,24 +307,34 @@ class Organs(object):
 
     @property
     def bunch_production(self):
-        '''(t_DM/month)'''
+        """ (t_DM/ha/mo) """
         return 0.001*sum([x.multiplicity*x.mass for x in self.bunches])
 
     @property
+    def FFB_production(self):
+        """ (t/ha/yr). """
+
+        c = self.parameters['bunch_FM_to_DM_ratio']['value']
+
+        # monthly -> yearly
+
+        return 12*c*self.bunch_production
+
+    @property
     def yield_FM_yearly(self):
-        ''' (tonne_FM/year). '''
+        """ (tonne_FM/year). """
         months_per_year = 12
         ratio = self.parameters['bunch_FM_to_DM_ratio']['value']
         return months_per_year*ratio*self.bunch_production
 
     @property
     def bunch_count(self):
-        '''(t_DM/month)'''
+        """(t_DM/month)"""
         return sum([x.multiplicity for x in self.bunches])
 
     @property
     def bunch_weight(self):
-        '''(kg_DM/bunch)'''
+        """(kg_DM/bunch)"""
         if self.bunch_count == 0:
             return 0
         else:
@@ -341,7 +351,7 @@ class Organs(object):
 
     @property
     def inflorescence_abortion_fraction(self):
-        ''' The mean of the non-zero values for the female cohorts (1). '''
+        """ The mean of the non-zero values for the female cohorts (1). """
 
         N = len(self.females)
         if N > 0:
@@ -357,7 +367,7 @@ class Organs(object):
 
     @property
     def bunch_failure_fraction(self):
-        ''' The mean of the non-zero values for the female cohorts (1). '''
+        """ The mean of the non-zero values for the female cohorts (1). """
 
         N = len(self.females)
         if N > 0:
@@ -376,17 +386,17 @@ class Organs(object):
     ######################
     @property
     def assim_growth_females(self):
-        ''' Assimilates for growth (kg_DM/cohort/month). '''
+        """ Assimilates for growth (kg_DM/cohort/month). """
         return 0.001*sum([x.assim_growth_cohort for x in self.females])
 
     @property
     def assim_growth_males(self):
-        ''' Assimilates for growth (kg_DM/cohort/month). '''
+        """ Assimilates for growth (kg_DM/cohort/month). """
         return 0.001*sum([x.assim_growth_cohort for x in self.males])
 
     @property
     def assim_growth_indeterminates(self):
-        ''' Assimilates for growth (kg_DM/cohort/month). '''
+        """ Assimilates for growth (kg_DM/cohort/month). """
         return 0.001*sum([x.assim_growth_cohort for x in self.indeterminates])
 
     #################
@@ -394,7 +404,7 @@ class Organs(object):
     #################
     @property
     def _female_fraction(self):
-        ''' The female fraction at sex determination (1). '''
+        """ The female fraction at sex determination (1). """
         y1,x1 = self.parameters['female_fraction_young']['value']
         y2,x2 = self.parameters['female_fraction_old']['value']
 
@@ -413,7 +423,7 @@ class Organs(object):
 
     @property
     def female_fraction(self):
-        ''' The female fraction at sex determination (1). '''
+        """ The female fraction at sex determination (1). """
 
         coeff = self.parameters['soil_moisture_specific_female_fraction_decrease']['value']
         threshold = self.parameters['female_fraction_decrease_threshold']['value']
@@ -430,12 +440,12 @@ class Organs(object):
     #############
     @property
     def onset_multiplicity_factor(self):
-        ''' Mimics sigmoidal on-set of number of inflorescence. '''
+        """ Mimics sigmoidal on-set of number of inflorescence. """
         return sigmoid(self._MAP,16,.1)
 
     @property
     def initiation_rate(self):
-        ''' New indeterminate cohorts (1/ha/month). '''
+        """ New indeterminate cohorts (1/ha/month). """
         if self._palm is None:
             return self._initiation_rate
         else:
@@ -443,7 +453,7 @@ class Organs(object):
 
     @property
     def _planting_density(self):
-        ''' The multiplicity of the cohort at initiation (1). '''
+        """ The multiplicity of the cohort at initiation (1). """
         if self._palm is None:
             return 1
         else:
@@ -451,5 +461,5 @@ class Organs(object):
 
     @property
     def number_of_cohorts(self):
-        ''' The number of cohorts. '''
+        """ The number of cohorts. """
         return len(self.cohorts)
