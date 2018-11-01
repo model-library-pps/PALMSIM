@@ -20,18 +20,17 @@ Next, download this folder and you are ready to go.
 
 # Contributing
 
-We appreciate your input; feel free to contact the author of this project: Willem Hekman.
+We appreciate your input. Feel free to email the maintainer of this model. See the contact section below.
 
-# Authors
+# Credits
 
-- Alba Vera Castenada: Initial work: version 1.0-
-- Munir Hoffman: Initial work: version 1.0-
-- Willem Hekman: Current development: versions 1.0+
+- Alba Vera Castenada
+- Munir Hoffman
 
 # License
 
 This project is licenser under a copy-left license, see http://models.pps.wur.nl/content/licence_agreement
 
-# Acknowledgements
+# Contact
 
-Long list of acknowledgements.
+The email of the maintair of this project is: willem.hekmar(at)wur.nl
