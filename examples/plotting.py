@@ -15,7 +15,7 @@ plt.rc('legend', fontsize=14)
 import matplotlib
 matplotlib.style.use('seaborn-colorblind')
 
-def tsplot(df,c,ax=None,window=12,figsize=(12,4)):
+def tsplot(df,c,ax=None,window=12,figsize=(12,4),label=True):
     s = df[c]
 
     if ax is None:
@@ -28,7 +28,8 @@ def tsplot(df,c,ax=None,window=12,figsize=(12,4)):
     s_ = s.rolling(window).mean().shift(-int(0.5*window))
     ax.plot(s_,label='rolling mean (1 yr)'.format(window),color='black')
     ax.legend(fontsize=8)
-    ax.set_ylabel(c)
+    if label:
+        ax.set_ylabel(c)
 
     return f,ax
 
