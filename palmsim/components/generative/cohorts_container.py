@@ -313,7 +313,7 @@ class Organs(object):
         """ (t_DM/ha/mo). """
         res = 0
         for bunch in self.bunches:
-            res += bunch.mesocarp_oil.mass
+            res += 0.001*bunch.multiplicity*bunch.mesocarp_oil.mass
 
         return res
 
@@ -323,7 +323,7 @@ class Organs(object):
         """ (t_DM/ha/mo). """
         res = 0
         for bunch in self.bunches:
-            res += bunch.kernel.mass
+            res += 0.001*bunch.multiplicity*bunch.kernel.mass
 
         return res
 
@@ -332,7 +332,8 @@ class Organs(object):
         """ (t_DM/ha/mo). """
         res = 0
         for bunch in self.bunches:
-            res += bunch.stalk.mass + bunch.mesocarp_fibers.mass
+            mass = bunch.stalk.mass + bunch.mesocarp_fibers.mass
+            res += 0.001*bunch.multiplicity*mass
 
         return res
 
