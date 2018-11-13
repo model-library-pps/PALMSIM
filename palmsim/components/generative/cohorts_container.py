@@ -83,7 +83,7 @@ class Organs(object):
         max_age                         : 'month'
         mean_age                        : 'month'
         multiplicity                    : '1/ha'
-        potential_sink_strength         : 't_DM/ha/month'
+        potential_sink_strength         : 't_CH2O/ha/month'
         bunch_weight                    : 'kg_DM'
         bunch_weight_fresh              : 'kg'
         bunch_count                     : '1/ha/month'
@@ -93,9 +93,11 @@ class Organs(object):
         number_of_cohorts               : '1'
         female_fraction                 : '1'
         FFB_production                  : 't/ha/yr'
-        assim_growth_females            : 'tonne_CH2O/ha/month'
-        assim_growth_indeterminates     : 'tonne_CH2O/ha/month'
-        assim_growth_males              : 'tonne_CH2O/ha/month'
+        PKO_production                  : 't_DM/ha/month'
+        CPO_production                  : 't_DM/ha/month'
+        assim_growth_females            : 't_CH2O/ha/month'
+        assim_growth_indeterminates     : 't_CH2O/ha/month'
+        assim_growth_males              : 't_CH2O/ha/month'
         mesocarp_oil_content            : '1'
 
     """)
@@ -307,11 +309,31 @@ class Organs(object):
             return 0
 
     @property
+    def CPO_production(self):
+        """ (t_DM/ha/mo). """
+        res = 0
+        for bunch in self.bunches:
+            res += 0.001*bunch.multiplicity*bunch.mesocarp_oil.mass
+
+        return res
+
+
+    @property
+    def PKO_production(self):
+        """ (t_DM/ha/mo). """
+        res = 0
+        for bunch in self.bunches:
+            res += 0.001*bunch.multiplicity*bunch.kernel.mass
+
+        return res
+
+    @property
     def EFB_production(self):
         """ (t_DM/ha/mo). """
         res = 0
         for bunch in self.bunches:
-            res += bunch.stalk.mass + bunch.mesocarp_fibers.mass
+            mass = bunch.stalk.mass + bunch.mesocarp_fibers.mass
+            res += 0.001*bunch.multiplicity*mass
 
         return res
 

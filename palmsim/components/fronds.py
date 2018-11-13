@@ -211,37 +211,39 @@ class Fronds(object):
 
     units = yaml.load('''
 
-        assim_growth: 't_CH2O/ha/month'
-        assim_produced: 't_CH2O/ha/month'
-        count: '1/ha'
-        count_per_palm: '1/palm'
-        fraction_intercepted: '1'
-        intercepted_solar_energy: 'TJ/ha/month'
-        total_leaf_area: 'm**2/ha'
-        leaf_area_index: '1'
-        maintenance_requirement: 't_CH2O/ha/month'
-        mass: 't_DM/ha'
-        mass_change_rate: 't_DM/ha/month'
-        mass_growth_rate: 't_DM/ha/month'
-        mass_loss_rate: 't_DM/ha/month'
-        mean_leaf_area: 'm**2'
-        plastochron: 'day'
-        leaf_area_per_palm: 'm**2'
-        initiation_rate: '1/palm/month'
-        intercepted_PAR: 'TJ/ha/month'
-        specific_leaf_area: 'cm**2/g_DM'
-        prune_rate: 't_DM/ha/month'
-        mass_per_palm: 'kg/palm'
-        mass_per_frond: 'kg/frond'
-        count_change_rate: '1/ha/month'
-        count_growth_rate: '1/ha/month'
-        count_loss_rate: '1/ha/month'
-        LUE: 't_CH2O/TJ PAR'
-        potential_growth_rate: 't_DM/ha/month'
-        potential_growth_rate_per_palm: 'kg_DM/palm/month'
-        potential_sink_strength: 't_CH2O/ha/month'
-        prune_rate: '1/ha/month'
-        prune_rate_mass: 't_DM/ha/month'
+        assim_growth                   : 't_CH2O/ha/month'
+        assim_produced                 : 't_CH2O/ha/month'
+        count                          : '1/ha'
+        count_per_palm                 : '1/palm'
+        fraction_intercepted           : '1'
+        intercepted_solar_energy       : 'TJ/ha/month'
+        total_leaf_area                : 'm**2/ha'
+        leaf_area_index                : '1'
+        maintenance_requirement        : 't_CH2O/ha/month'
+        mass                           : 't_DM/ha'
+        mass_change_rate               : 't_DM/ha/month'
+        mass_growth_rate               : 't_DM/ha/month'
+        mass_loss_rate                 : 't_DM/ha/month'
+        mean_leaf_area                 : 'm**2'
+        plastochron                    : 'day'
+        leaf_area_per_palm             : 'm**2'
+        initiation_rate                : '1/palm/month'
+        intercepted_PAR                : 'TJ/ha/month'
+        specific_leaf_area             : 'cm**2/g_DM'
+        prune_rate                     : 't_DM/ha/month'
+        mass_per_palm                  : 'kg/palm'
+        mass_per_frond                 : 'kg/frond'
+        count_change_rate              : '1/ha/month'
+        count_growth_rate              : '1/ha/month'
+        count_loss_rate                : '1/ha/month'
+        LUE                            : 't_CH2O/TJ PAR'
+        potential_growth_rate          : 't_DM/ha/month'
+        potential_growth_rate_per_palm : 'kg_DM/palm/month'
+        potential_sink_strength        : 't_CH2O/ha/month'
+        prune_rate                     : '1/ha/month'
+        prune_rate_mass                : 't_DM/ha/month'
+        prune_rate_rachis_mass         : 't_DM/ha/month'
+        prune_rate_leaflets_mass       : 't_DM/ha/month'
 
     ''')
 
@@ -311,6 +313,22 @@ class Fronds(object):
         else:
             # prune me!
             return self._palm.management.prune_rate_mass
+
+    @property
+    def prune_rate_rachis_mass(self):
+        ''' Prune rate (t_DM/ha/month). '''
+
+        c = self.parameters['fraction_rachis']['value']
+
+        return c*self.prune_rate_mass
+
+    @property
+    def prune_rate_leaflets_mass(self):
+        ''' Prune rate (t_DM/ha/month). '''
+
+        c = self.parameters['fraction_leaflets']['value']
+
+        return c*self.prune_rate_mass
 
     #~~~~~~~~~~~~~~~~
 
