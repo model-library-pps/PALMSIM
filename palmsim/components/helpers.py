@@ -61,7 +61,7 @@ def add_dumps(klass):
             try:
                 value = getattr(self,key)
             except:
-                print(sys.exc_info[0])
+                print(sys.exc_info())
                 pass
 
             if isinstance(value,(float,int)):

@@ -48,6 +48,7 @@ class Cohort(object):
         mesocarp_oil_content            : '1'
         relative_sink_strength          : '1'
         trigger_flowering               : 'bool'
+        Ic : '1'
 
     """)
 
@@ -119,12 +120,26 @@ class Cohort(object):
         else:
             return 0
 
+    @property
+    def Ic(self):
+        """ The so-called index of competition.
+
+        After Combres et al., 2013.
+        """
+        PSS = self.potential_sink_strength
+        if PSS > 0:
+            return self.assim_growth_organ/PSS
+        else:
+            return 0
+
 #~~~~~~~~~~~~~~~~
 
     @property
     def potential_mass(self):
         """ The potential mass (kg_DM). """
-        return sum([x.potential_mass for x in self.components])
+
+        # TEMP
+        return 10 + (1/12)*self._MAP
 
     @property
     def mass(self):
@@ -206,9 +221,7 @@ class Cohort(object):
         """ The abortion fraction (1/month). """
         return self._abortion_fraction
 
-
 #~~~~~~~~~~~~~~~~
-
 
 class Indeterminate(Cohort):
     """ Models a cohort of indeterminate inflorescences. """
@@ -455,7 +468,6 @@ class Female(Cohort):
     @property
     def _soil_moisture_content(self):
         if self._container is None:
-
             return self._soil_moisture_content_
         else:
             return self._container._soil_moisture_content

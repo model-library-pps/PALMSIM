@@ -99,6 +99,7 @@ class Organs(object):
         assim_growth_indeterminates     : 't_CH2O/ha/month'
         assim_growth_males              : 't_CH2O/ha/month'
         mesocarp_oil_content            : '1'
+        Ic : '1'
 
     """)
 
@@ -117,6 +118,18 @@ class Organs(object):
 
         # pool of cohorts marked for deletion
         self.to_delete = []
+
+    @property
+    def Ic(self):
+        """ The so-called index of competition.
+
+        After Combres et al., 2013.
+        """
+        return sum([x.Ic for x in self.cohorts])/len(self.cohorts)
+
+    @property
+    def stress_index(self):
+        return self.Ic
 
     @property
     def _water_deficit(self):

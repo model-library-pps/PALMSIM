@@ -133,48 +133,27 @@ class BunchComponent(object):
 
         # dummy variable for proto-typing
         self._assim_growth = 0
+        self._total_mass = 0
 
 #~~~~~~~~~~~~~~~~
 
-    def get_potential_mass(self):
-        """ A linear function of palm age.
-
-        Parametrized via y0 the potential mass
-        for the first fruits (x0) and y1 the
-        potential mass at the end of a typical
-        field life-time (x1) -- 30 years after planting:
-
-        y = (y1-y0)/(x1-x0)*(x-x0) + y0 .
-
-        """
-
-        if 'potential_mass_t0' in self.parameters:
-
-            y0 = self.parameters['potential_mass_t0']['value']
-
-        else:
-            print(self.__class__.__name__)
-            print(list(self.parameters))
+    def get_potential_total_mass(self):
 
         if self._cohort is None:
-            return y1
+            return self._total_mass
         else:
-            MAP = self._cohort._MAP
-            y1 = self.parameters['potential_mass_t1']['value']
+            return self._cohort.potential_mass
 
-            # here hard-coded..
-            MAP0 = 0
-            MAP1 = 360
+    def get_potential_mass(self):
+        """ Returns the potential component mass.
 
-            # a linear interpolation
-            c = (y1-y0)/(MAP1-MAP0)
+        Is estimated via the potential total mass and a mass fraction.
+        """
+        c = self.parameters['potential_mass_fraction']['value']
 
-            res = c*(MAP-MAP0) + y0
+        total = self.get_potential_total_mass()
 
-            if res < y0:
-                return y0
-            else:
-                return res
+        return c*total
 
 #~~~~~~~~~~~~~~~~
 
@@ -334,19 +313,13 @@ class Stalk(BunchComponent):
             source: 'Based on Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
-        potential_mass_t0:
-            value: .5
-            unit: 'kg'
-            info: 'The potential mass for a "young" palm (age <= 3 YAP).'
+        potential_mass_fraction:
+            value: .20
+            unit: '1'
+            info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
+            uncertainty: 10%
 
-        potential_mass_t1:
-            value: 5
-            unit: 'kg'
-            info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
-            source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
         """)
 
 class MesocarpFibers(BunchComponent):
@@ -384,19 +357,12 @@ class MesocarpFibers(BunchComponent):
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
-        potential_mass_t0:
-            value: 2
-            unit: 'kg'
-            info: 'The potential mass for a "young" palm (age <= 3 YAP).'
+        potential_mass_fraction:
+            value: .35
+            unit: '1'
+            info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
-
-        potential_mass_t1:
-            value: 20
-            unit: 'kg'
-            info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
-            source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
+            uncertainty: 10%
         """)
 
 class MesocarpOil(BunchComponent):
@@ -433,19 +399,12 @@ class MesocarpOil(BunchComponent):
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
-        potential_mass_t0:
-            value: 3
-            unit: 'kg'
-            info: 'The potential mass for a "young" palm (age <= 3 YAP).'
+        potential_mass_fraction:
+            value: .40
+            unit: '1'
+            info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
-
-        potential_mass_t1:
-            value: 30
-            unit: 'kg'
-            info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
-            source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
+            uncertainty: 10%
 
         """)
 
@@ -484,18 +443,11 @@ class Kernels(BunchComponent):
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
-        potential_mass_t0:
-            value: .5
-            unit: 'kg'
-            info: 'The potential mass for a "young" palm (age <= 3 YAP).'
+        potential_mass_fraction:
+            value: .05
+            unit: '1'
+            info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
-
-        potential_mass_t1:
-            value: 5
-            unit: 'kg'
-            info: 'The potential mass for a "mature" palm ( age > 15 YAP).'
-            source: 'Based on Corley, Ch.5. See fig 5.7.'
-            uncertainty: 5%
+            uncertainty: 10%
 
         """)

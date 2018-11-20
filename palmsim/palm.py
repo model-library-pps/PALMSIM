@@ -156,7 +156,6 @@ class PalmField():
 
     _name = 'palm'
     _prefix = ''
-    _version = '1.0.0.1'
 
     default_parameters = {}
 
