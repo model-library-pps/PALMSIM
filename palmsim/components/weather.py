@@ -71,7 +71,7 @@ class Weather(object):
 
         # Mock-up values - only used
         # if no time-series are supplied.
-        self._radiation_series_mean_ = 10
+        self._radiation_series_mean_ = 20
         self._raindays_series_mean_ = 14
         self._rainfall_series_mean_ = 150
 
@@ -85,25 +85,10 @@ class Weather(object):
     #~~~~~~~~~~~~~~~~~~~
 
     @property
-    def radiation_monthly(self):
-        ''' Visible radiation (TJ/ha/mo). '''
-
-        # I_m [TJ/ha/mo] : I_d [MJ/m**2/day] =
-        # 10^-6 [TJ/MJ] * 10^4 [m**2/ha] * 30 [days/mo] = ~0.3
-
-        return 0.01*DAYS_PER_MONTH*self.radiation
-
-    @property
     def PAR(self):
         ''' Photo-synthetically active radiation (MJ/m**2/day). '''
         c = self.parameters['PAR_fraction']['value']
         return c*self.radiation
-
-    @property
-    def PAR_monthly(self):
-        ''' Photo-synthetically active radiation (TJ/ha/mo). '''
-        c = self.parameters['PAR_fraction']['value']
-        return c*self.radiation_monthly
 
     #~~~~~~~~~~~~~~~~~~~
 

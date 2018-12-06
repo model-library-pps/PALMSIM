@@ -99,7 +99,7 @@ class Fronds(object):
 
     LUE:
         value: 4.2
-        unit: 't_CH2O/TJ'
+        unit: 'g_CH2O/MJ'
         info: 'The light use efficiency.'
         source: 'Based on a more detailed hourly light-response
                     model (copied from SUCROS) using oil palm LR measurements by Breure, Gerritsma.'
@@ -186,7 +186,7 @@ class Fronds(object):
         uncertainty: 5%
 
     potential_growth_rate:
-        value: 8
+        value: 4
         unit: 'kg_DM/palm/month'
         info: 'The potential growth rate'
         source: 'Based on Corley et al., 1971.'
@@ -211,39 +211,41 @@ class Fronds(object):
 
     units = yaml.load('''
 
-        assim_growth                   : 't_CH2O/ha/month'
-        assim_produced                 : 't_CH2O/ha/month'
+        assim_growth                   : 'kg_CH2O/ha/day'
+        assim_produced                 : 'kg_CH2O/ha/day'
         count                          : '1/ha'
         count_per_palm                 : '1/palm'
         fraction_intercepted           : '1'
-        intercepted_solar_energy       : 'TJ/ha/month'
-        total_leaf_area                : 'm**2/ha'
+        intercepted_solar_energy       : 'GJ/ha/day'
+        total_leaf_area                : 'm2/ha'
         leaf_area_index                : '1'
-        maintenance_requirement        : 't_CH2O/ha/month'
-        mass                           : 't_DM/ha'
-        mass_change_rate               : 't_DM/ha/month'
-        mass_growth_rate               : 't_DM/ha/month'
-        mass_loss_rate                 : 't_DM/ha/month'
-        mean_leaf_area                 : 'm**2'
+        maintenance_requirement        : 'kg_CH2O/ha/day'
+        mass                           : 'kg_DM/ha'
+        mass_change_rate               : 'kg_DM/ha/day'
+        mass_change_rate_yearly        : 'kg_DM/ha/year'
+        mass_change_rate_per_palm      : 'kg_DM/palm/year'
+        mass_growth_rate               : 'kg_DM/ha/day'
+        mass_loss_rate                 : 'kg_DM/ha/day'
+        mean_leaf_area                 : 'm2'
         plastochron                    : 'day'
-        leaf_area_per_palm             : 'm**2'
-        initiation_rate                : '1/palm/month'
-        intercepted_PAR                : 'TJ/ha/month'
-        specific_leaf_area             : 'cm**2/g_DM'
-        prune_rate                     : 't_DM/ha/month'
+        leaf_area_per_palm             : 'm2'
+        initiation_rate                : '1/palm/day'
+        intercepted_PAR                : 'GJ/ha/day'
+        specific_leaf_area             : 'cm2/g_DM'
+        prune_rate                     : 'kg_DM/ha/day'
         mass_per_palm                  : 'kg/palm'
         mass_per_frond                 : 'kg/frond'
-        count_change_rate              : '1/ha/month'
-        count_growth_rate              : '1/ha/month'
-        count_loss_rate                : '1/ha/month'
-        LUE                            : 't_CH2O/TJ PAR'
-        potential_growth_rate          : 't_DM/ha/month'
-        potential_growth_rate_per_palm : 'kg_DM/palm/month'
-        potential_sink_strength        : 't_CH2O/ha/month'
-        prune_rate                     : '1/ha/month'
-        prune_rate_mass                : 't_DM/ha/month'
-        prune_rate_rachis_mass         : 't_DM/ha/month'
-        prune_rate_leaflets_mass       : 't_DM/ha/month'
+        count_change_rate              : '1/ha/day'
+        count_growth_rate              : '1/ha/day'
+        count_loss_rate                : '1/ha/day'
+        LUE                            : 'g_CH2O/MJ PAR'
+        potential_growth_rate          : 'kg_DM/ha/day'
+        potential_growth_rate_per_palm : 'kg_DM/palm/day'
+        potential_sink_strength        : 'kg_CH2O/ha/day'
+        prune_rate                     : '1/ha/day'
+        prune_rate_mass                : 'kg_DM/ha/day'
+        prune_rate_rachis_mass         : 'kg_DM/ha/day'
+        prune_rate_leaflets_mass       : 'kg_DM/ha/day'
 
     ''')
 
@@ -255,7 +257,7 @@ class Fronds(object):
 
         # convert from kg/plant -> t/ha
         mass_per_palm = self.initial_values['mass']['value']
-        self.mass  = 0.001*self._planting_density*mass_per_palm
+        self.mass  = self._planting_density*mass_per_palm
 
         # convert from 1/plant -> 1/ha
         count_per_palm = self.initial_values['count']['value']
@@ -284,8 +286,16 @@ class Fronds(object):
             return self._palm.MAP
 
     @property
+    def _DAP(self):
+        ''' Days after planting; Palm age (days). '''
+        if self._palm is None:
+            return 0
+        else:
+            return self._palm.DAP
+
+    @property
     def _PAR(self):
-        ''' Radiation (PAR) per ground area/month (MJ/m**2/day). '''
+        ''' Radiation (PAR) (MJ/m2/day). '''
 
         if self._palm is None:
             return self._PAR_
@@ -306,7 +316,7 @@ class Fronds(object):
 
     @property
     def prune_rate_mass(self):
-        ''' Prune rate (t_DM/ha/month). '''
+        ''' Prune rate (kg_DM/ha/day). '''
 
         if self._palm is None:
             return 0
@@ -316,7 +326,7 @@ class Fronds(object):
 
     @property
     def prune_rate_rachis_mass(self):
-        ''' Prune rate (t_DM/ha/month). '''
+        ''' Prune rate (kg_DM/ha/day). '''
 
         c = self.parameters['fraction_rachis']['value']
 
@@ -324,7 +334,7 @@ class Fronds(object):
 
     @property
     def prune_rate_leaflets_mass(self):
-        ''' Prune rate (t_DM/ha/month). '''
+        ''' Prune rate (kg_DM/ha/day). '''
 
         c = self.parameters['fraction_leaflets']['value']
 
@@ -333,34 +343,33 @@ class Fronds(object):
     #~~~~~~~~~~~~~~~~
 
     def update(self,dt=1):
-        ''' Update state by a (dt=1) (30-day) month.'''
+        ''' Update state by dt days.'''
         self._update(dt=dt)
 
     def _update(self,dt=1):
-        ''' Update state by a (dt=1) (30-day) month. '''
+        ''' Update state by dt days. '''
         self._update_mass(dt=dt)
         self._update_count(dt=dt)
 
     def _update_mass(self,dt=1):
-        ''' Update the mass. '''
+        ''' Update the mass (t_DM/ha) by dt days. '''
 
-        # t_DM/ha
-        self.mass += self.mass_change_rate*dt
+        self.mass += (1/365)*self.mass_change_rate*dt
 
     def _update_count(self,dt=1):
-        ''' Update the count. '''
+        ''' Update the count (1/ha) by dt days. '''
         self.count += self.count_change_rate*dt
 
     #~~~~~~~~~~~~~~~~
 
     @property
     def mass_change_rate(self):
-        ''' Mass change rate (t_DM/ha/month). '''
+        ''' Mass change rate (kg_DM/ha/day). '''
         return self.mass_growth_rate - self.mass_loss_rate
 
     @property
     def mass_growth_rate(self):
-        ''' Mass growth rate (t_DM/ha/month). '''
+        ''' Mass growth rate (kg_DM/ha/day). '''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -368,18 +377,30 @@ class Fronds(object):
 
     @property
     def mass_loss_rate(self):
-        ''' Mass loss rate (t_DM/ha/month).
+        ''' Mass loss rate (kg_DM/ha/day).
 
         Due to pruning. See also the management sub-model's
         prune variables.
         '''
         return self.prune_rate_mass
 
+    @property
+    def mass_change_rate_yearly(self):
+        ''' Mass change rate (kg_DM/ha/year). '''
+
+        return 365*self.mass_change_rate
+
+    @property
+    def potential_growth_realization(self):
+        ''' Actual growth : potential growth (1). '''
+
+        return self.mass_growth_rate/self.potential_growth_rate
+
     #~~~~~~~~~~~~~~~~
 
     @property
     def count_change_rate(self):
-        ''' Fround count change rate (1/ha/month).
+        ''' Fround count change rate (1/ha/day).
 
         The difference between growth and loss.
         See associated growth and loss rate properties.
@@ -388,17 +409,17 @@ class Fronds(object):
 
     @property
     def count_growth_rate(self):
-        ''' Fround count growth rate (1/ha/month). '''
+        ''' Fround count growth rate (1/ha/day). '''
         return self.initiation_rate*self._planting_density
 
     @property
     def initiation_rate(self):
 
-        ''' The frond initiation_rate/count growth rate (1/month).
+        ''' The frond initiation_rate/count growth rate (1/day).
 
         Uses a fit to field observations; a Gompertz function
 
-        R = (1/12)*a*(1+b*exp(-c*(t/12))
+        R = (1/365)*a*(1+b*exp(-c*(t/12))
 
         R the frond initiation_rate rate (1/palm/month)
         t year after planting
@@ -406,7 +427,7 @@ class Fronds(object):
         b the initial relative offset from the asymptote (1)
         c the typical time scale (year)
 
-        Is inspired by:
+        Is based on:
 
             Gerritsma, W. and Soebagyo, F.X., 1998.
             An analysis of the growth of leaf area of oil palm in indonesia.
@@ -420,23 +441,22 @@ class Fronds(object):
 
         cap = self.parameters['initiation_rate_max']['value']
 
-        # in months
-        t = self._MAP
-        t_year = t/12
+        # YAP
+        t = self._DAP/365
 
         # (1/year/palm)
-        yearly_naive = a*(1+b*np.exp(-c*(t_year)))
+        yearly_naive = a*(1+b*np.exp(-c*(t)))
 
         yearly = min(cap,yearly_naive)
 
-        # (1/month/palm)
-        monthly = yearly/12
+        # (1/day/palm)
+        daily = yearly/365
 
-        return float(monthly)
+        return float(daily)
 
     @property
     def count_loss_rate(self):
-        ''' Fround count loss rate (1/ha/month).
+        ''' Fround count loss rate (1/ha/day).
 
         Determined strictly by the pruning regime.
         '''
@@ -444,7 +464,7 @@ class Fronds(object):
 
     @property
     def prune_rate(self):
-        ''' Frond prune rate (1/ha/month).
+        ''' Frond prune rate (1/ha/day).
 
         Determined strictly by the pruning regime.
         '''
@@ -453,11 +473,10 @@ class Fronds(object):
         else:
             return self._palm.management.prune_rate
 
-
     @property
     def plastochron(self):
         ''' Days between consecutive frond initiation (days). '''
-        return DAYS_PER_MONTH/self.initiation_rate
+        return 1/self.initiation_rate
 
     @property
     def count_per_palm(self):
@@ -472,25 +491,25 @@ class Fronds(object):
 
     @property
     def _maintenance_rachis(self):
-        ''' Maintenance requirement (t_CH2O/ha/month). '''
+        ''' Maintenance requirement (kg_CH2O/ha/day). '''
 
         c = self.parameters['specific_maintenance_rachis']['value']
 
-        return DAYS_PER_MONTH * c * self._mass_rachis
+        return c * self._mass_rachis
 
     @property
     def _maintenance_leaflets(self):
-        ''' Maintenance requirement (t_CH2O/ha/month). '''
+        ''' Maintenance requirement (kg_CH2O/ha/day). '''
 
         c = self.parameters['specific_maintenance_leaflets']['value']
 
-        return DAYS_PER_MONTH * c * self._mass_leaflets
+        return c * self._mass_leaflets
 
     #~~~~~~~~~~~~~~~~
 
     @property
     def potential_sink_strength(self):
-        ''' Potential sink strength (t_CH2O/ha/month)'''
+        ''' Potential sink strength (kg_CH2O/ha/day)'''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -498,24 +517,25 @@ class Fronds(object):
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/mo). '''
+        ''' Potential growth rate (kg_DM/palm/day). '''
 
-        c = self.parameters['potential_growth_rate']['value']
+        monthly_rate = self.parameters['potential_growth_rate']['value']
 
-        return c
+        daily_rate = monthly_rate/30
+
+        return daily_rate
 
     @property
     def potential_growth_rate(self):
-        ''' Potential growth rate (t_DM/ha/month) '''
+        ''' Potential growth rate (kg_DM/ha/day) '''
 
         v = self.potential_growth_rate_per_palm
 
-        # [kg/palm] : [t/ha] = 0.001 * PD
-        return 0.001*v*self._planting_density
+        return v*self._planting_density
 
     @property
     def assim_growth(self):
-        ''' Assimilates for growth (t_CH2O/ha/month). '''
+        ''' Assimilates for growth (kg_CH2O/ha/day). '''
 
         if self._palm is None:
             return self._assim_growth_
@@ -533,7 +553,7 @@ class Fronds(object):
 
     @property
     def total_leaf_area(self):
-        ''' The total leaf area (m**2). '''
+        ''' The total leaf area (m2). '''
         return self.mean_leaf_area*self.count
 
     @property
@@ -548,39 +568,45 @@ class Fronds(object):
         See Fig. 1 and Table 1.
         '''
 
-        t = self._MAP
+        # YAP
+        t = self._DAP/365
 
         a = self.parameters['leaf_area_a']['value'] # 12 +- 1
         b = self.parameters['leaf_area_b']['value'] # 2.47 +- 0.1
         c = self.parameters['leaf_area_c']['value'] # 0.36 +- 0.04
 
-        return a*np.exp(-b*np.exp(-c*(t/12)))
+        return a*np.exp(-b*np.exp(-c*(t)))
 
     @property
     def leaf_area_per_palm(self):
-        ''' Calculates the leaf area per palm (m**2/palm). '''
+        ''' Calculates the leaf area per palm (m2/palm). '''
         return self.total_leaf_area/self._planting_density
 
     @property
     def specific_leaf_area(self):
-        ''' Specific leaf area (m**2 leaf/kg leaf). '''
-        return self.mean_leaf_area/self.mass_per_frond
+        ''' Specific leaf area (m2 leaf/kg leaf). '''
+
+        c = self.parameters['fraction_leaflets']['value']
+
+        leaflet_mass_per_frond = c*self.mass_per_frond
+
+        return self.mean_leaf_area/leaflet_mass_per_frond
 
     #~~~~~~~~~~~~
 
     @property
     def assim_produced(self):
-        ''' Assimilates produced (t_CH2O/month/ha). '''
+        ''' Assimilates produced (kg_CH2O/day/ha). '''
 
-        # (t_CH2O/TJ == g_CH2O/MJ)
+        # g_CH2O/MJ -> kg_CH2O/GJ
         LUE = self.LUE
 
-        # (GJ/ha/month)
-        intercepted_solar_energy = self.intercepted_PAR
+        # (GJ/ha/day)
+        intercepted_PAR = self.intercepted_PAR
 
         rT = self._relative_transpiration_rate
 
-        return rT*LUE*intercepted_solar_energy
+        return rT * LUE * intercepted_PAR
 
     @property
     def LUE(self):
@@ -589,18 +615,20 @@ class Fronds(object):
 
     @property
     def intercepted_PAR(self):
-        ''' The intercepted radiation (PAR) (TJ/ha/month). '''
+        ''' The intercepted radiation (PAR) (GJ/ha/day). '''
 
-        # (MJ/m**2/day)
+        # (MJ/m2/day)
         PAR = self._PAR
 
-        # 9 MJ/m**2/day --> ~ 30*9*0.01 = 2.7 TJ/ha/mo
-        c = 0.01*DAYS_PER_MONTH
+        # 9 MJ/m2/day --> ~ 9*10000/1000 = 90 GJ/ha/day
+        # 1 MJ/m2 = 10 GJ/ha
+
+        c = 10
 
         # (1)
         fraction_intercepted = self.fraction_intercepted
 
-        return c*fraction_intercepted*PAR
+        return c * fraction_intercepted * PAR
 
     @property
     def fraction_intercepted(self):
@@ -613,7 +641,7 @@ class Fronds(object):
 
         k = self.parameters['k']['value']
 
-        return (1-np.exp(-k*LAI))
+        return (1 - np.exp(-k*LAI))
 
     #~~~~~~~~~~~~
 
@@ -636,10 +664,15 @@ class Fronds(object):
     @property
     def mass_per_palm(self):
         ''' Frond mass per palm (kg_DM/palm). '''
-        return 1000*self.mass/self._planting_density
+        return self.mass / self._planting_density
+
+    @property
+    def mass_change_rate_per_palm(self):
+        ''' Mass change rate (kg_DM/palm/year). '''
+        return (1/self._planting_density)*self.mass_change_rate_yearly
 
     @property
     def mass_per_frond(self):
         ''' Mass per frond (kg_DM/frond). '''
-        return 1000*self.mass/self.count
+        return self.mass / self.count
 

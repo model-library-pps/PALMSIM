@@ -61,8 +61,8 @@ class Roots(object):
         uncertainty: 20%
 
     loss_param_b:
-        value: 0.0018
-        unit: 't/ha/day'
+        value: 1.8
+        unit: 'kg_DM/ha/day'
         info: 'Co-determines the mass loss rate of the roots.'
         source: 'The legacy version; PalmSim 2014.'
         uncertainty: 20%
@@ -97,16 +97,18 @@ class Roots(object):
 
     units = yaml.load('''
 
-        assim_growth: 't_CH2O/ha/day'
-        maintenance_requirement: 't_CH2O/ha/day'
-        mass: 't_DM/ha'
+        assim_growth: 'kg_CH2O/ha/day'
+        maintenance_requirement: 'kg_CH2O/ha/day'
+        mass: 'kg_DM/ha'
         mass_per_palm: 'kg_DM/palm'
-        mass_change_rate: 't_DM/ha/day'
-        mass_growth_rate: 't_DM/ha/day'
-        mass_loss_rate: 't_DM/ha/day'
-        potential_growth_rate: 't_DM/ha/day'
-        potential_growth_rate_per_palm : 'kg_DM/ha/day'
-        potential_sink_strength: 't_CH2O/ha/day'
+        mass_change_rate: 'kg_DM/ha/day'
+        mass_change_rate_yearly: 'kg_DM/ha/year'
+        mass_change_rate_per_palm: 'kg_DM/palm/year'
+        mass_growth_rate: 'kg_DM/ha/day'
+        mass_loss_rate: 'kg_DM/ha/day'
+        potential_growth_rate: 'kg_DM/ha/day'
+        potential_growth_rate_per_palm : 'kg_DM/palm/day'
+        potential_sink_strength: 'kg_CH2O/ha/day'
 
     ''')
 
@@ -120,7 +122,7 @@ class Roots(object):
 
         # convert from kg/plant -> ton/ha
         mass_per_palm = self.initial_values['mass']['value']
-        self.mass = 0.001*self._planting_density*mass_per_palm
+        self.mass = self._planting_density*mass_per_palm
 
         # convert potential growth rate values (pgr) to a pgr function
         # - a (cubic: k=3) spline
@@ -157,18 +159,29 @@ class Roots(object):
 
         assert self.mass >= 0
 
-
     @property
     def mass_change_rate(self):
-        ''' Mass change rate (t_DM/ha/day). '''
+        ''' Mass change rate (kg_DM/ha/day). '''
 
         return self.mass_growth_rate - self.mass_loss_rate
+
+    @property
+    def mass_change_rate_yearly(self):
+        ''' Mass change rate (kg_DM/ha/year). '''
+
+        return 365*self.mass_change_rate
+
+    @property
+    def potential_growth_realization(self):
+        ''' Actual growth : potential growth (1). '''
+
+        return self.mass_growth_rate/self.potential_growth_rate
 
     #~~~~~~~~~~~~~~~~
 
     @property
     def mass_growth_rate(self):
-        ''' Mass growth rate (t/ha/day). '''
+        ''' Mass growth rate (kg_DM/ha/day). '''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -176,27 +189,34 @@ class Roots(object):
 
     @property
     def mass_loss_rate(self):
-        ''' Loss of root mass (DM t/ha/day). '''
+        ''' Loss of root mass (kg_DM/ha/day). '''
 
         mass = self.mass
 
         a = self.parameters['loss_param_a']['value']
         b = self.parameters['loss_param_b']['value']
 
-        return  a*mass + b
+        daily_rate = a*mass + b
+
+        return daily_rate
 
     #~~~~~~~~~~~~~~~~~~
 
     @property
     def mass_per_palm(self):
-        ''' Mass change rate (kg_DM/palm). '''
-        return 1000*(1/self._planting_density)*self.mass
+        ''' Mass per palm (kg_DM/palm). '''
+        return (1/self._planting_density)*self.mass
+
+    @property
+    def mass_change_rate_per_palm(self):
+        ''' Mass change rate (kg_DM/palm/year). '''
+        return (1/self._planting_density)*self.mass_change_rate_yearly
 
     #~~~~~~~~~~~~~~~~~~
 
     @property
     def assim_growth(self):
-        ''' Assimilates for growth (t_CH2O/ha/day).
+        ''' Assimilates for growth (kg_CH2O/ha/day).
 
         Determined by the potential sink strength
         in relation to that of the other modelled
@@ -210,7 +230,7 @@ class Roots(object):
 
     @property
     def potential_sink_strength(self):
-        ''' Potential sink strength (t_CH2O/ha/day). '''
+        ''' Potential sink strength (kg_CH2O/ha/day). '''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -226,23 +246,17 @@ class Roots(object):
 
         daily_rate = yearly_rate/365
 
-        loss_rate = 1000*self.mass_loss_rate/self._planting_density
-
-        corrected_rate = daily_rate + loss_rate
-
-        return corrected_rate
+        return daily_rate
 
     @property
     def potential_growth_rate(self):
-        ''' Potential growth rate (t_DM/ha/day). '''
+        ''' Potential growth rate (kg_DM/ha/day). '''
 
-        # [kg/palm] : [t/ha] = 0.001 * PD
-
-        return 0.001*self._planting_density*self.potential_growth_rate_per_palm
+        return self._planting_density*self.potential_growth_rate_per_palm + self.mass_loss_rate
 
     @property
     def maintenance_requirement(self):
-        ''' Maintenance requirement (t_CH2O/ha/day). '''
+        ''' Maintenance requirement (kg_CH2O/ha/day). '''
 
         c = self.parameters['specific_maintenance']['value']
 
