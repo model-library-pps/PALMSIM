@@ -6,6 +6,9 @@ import yaml
 import os
 import sys
 
+from datetime import datetime, timedelta
+import calendar
+
 from copy import deepcopy
 
 import numpy as np
@@ -98,7 +101,7 @@ class PalmField():
 
         pf.components
 
-    Running the command
+    Running
 
         pf
 
@@ -136,7 +139,7 @@ class PalmField():
 
     '''
 
-    variable_units = dict(age              = 'month',
+    variable_units = dict(age                = 'month',
                         dt                   = 'month',
                         harvest              = 'tonne_DM/ha/month',
                         harvest_yearly       = 'tonne_DM/ha/year',
@@ -157,32 +160,37 @@ class PalmField():
     _name = 'palm'
     _prefix = ''
 
-    default_parameters = {}
+    parameters = {}
 
     def __init__(self,
-                    version = 'modern',
                     verbose = True,
                     settings = None,
                     year_of_planting = 2017,
-                    month_of_planting = 0,
+                    month_of_planting = 1,
+                    day_of_planting =1,
                     dt = 1):
 
-        # for convenience sake time is kept in the palm
-        self.MAP = 0
-        self._month = 0
+        # simulation run-time is kept by instances of this class
 
-        self._year_of_planting = year_of_planting
-        self._month_of_planting = month_of_planting
-        self._dt = dt
+        self.year_of_planting = year_of_planting
+        self.month_of_planting = month_of_planting
+        self.day_of_planting = day_of_planting
 
-        self.parameters = deepcopy(self.default_parameters)
+        self.dt = dt
 
-        # Bind the drivers
+        self.time = datetime(year_of_planting,
+                                month_of_planting,
+                                day_of_planting)
+
+        # assignment by value
+        self.time_of_planting = self.time
+
+        # Link the sub-models
         self.weather    = Weather(self)
         self.soil       = Soil(self)
         self.management = Management(self)
 
-        # Bind the parts/components
+        # Link the sub-models
         self.fronds      = Fronds(self)
         self.roots       = Roots(self)
         self.trunk       = Trunk(self)
@@ -205,23 +213,79 @@ class PalmField():
         self._units = {}
 
     @property
-    def month(self):
-        ''' The current month. '''
-        return 1+(self._month%12)
+    def DAP(self):
+        time_passed = self.time - self.time_of_planting
+        return time_passed.days
+
+    @property
+    def YAP(self):
+        return self.year - self.year_of_planting
+
+    @property
+    def MAP(self):
+        month = self.month - self.month_of_planting
+        YAP = self.YAP
+
+        return 12*YAP + month
+
+    @property
+    def _days_in_month(self):
+
+        year = self.year
+        month = self.month
+
+        return calendar.monthrange(2000, 1)[1]
 
     @property
     def year(self):
         ''' The current year. '''
-        return self._year_of_planting+int(self._month//12)
+        return self.time.year
+
+    @property
+    def month(self):
+        ''' The current month. '''
+        return self.time.month
+
+    @property
+    def day(self):
+        return self.time.day
 
     @property
     def date(self):
         ''' The date (yyyy-mm-dd). '''
-        return '{:}-{:}-01'.format(self.year,str(self.month).zfill(2))
+        return '{:}-{:}-{:}'.format(self.year, self.month, self.day)
 
     @property
     def date_tuple(self):
-        return (self.year, self.month)
+        return (self.year, self.month, self.day)
+
+    def update(self, dt=1):
+        ''' Update by dt days. '''
+
+        assert isinstance(dt, int)
+        assert dt <= 31
+        assert dt >= 1
+
+        self._update(dt=dt)
+
+        return self
+
+    def _update(self,dt):
+        ''' Update by dt days. '''
+
+        _dt = timedelta(days=dt)
+
+        self.time += _dt
+
+        self.soil.update()
+        self.assimilates.update()
+
+        self.management.update()
+        self.fronds.update(dt=dt)
+        self.trunk.update(dt=dt)
+        self.roots.update(dt=dt)
+
+        self.organs.update(dt=dt)
 
     #########################
     # Mass: alternative units
@@ -262,34 +326,6 @@ class PalmField():
         ''' The mean mass of the palm fronds (kg). '''
         return 1000*self.fronds.mass/self.planting_density
 
-    def update(self,N_months = None, dt=1):
-        ''' update N_months (30 day) months '''
-
-        if N_months is None:
-            N_steps = 1
-        else:
-            N_steps  = int(N_months/dt)
-
-        for step in range(N_steps):
-            self._update(dt=dt)
-
-        return self
-
-    def _update(self,dt):
-        '''Update a dt * 30 day month'''
-
-        self.MAP += dt
-        self._month += dt
-
-        self.soil.update()
-        self.assimilates.update()
-
-        self.management.update()
-        self.fronds.update(dt=dt)
-        self.trunk.update(dt=dt)
-        self.roots.update(dt=dt)
-
-        self.organs.update(dt=dt)
 
     def run(self,duration=360,dt=1):
 

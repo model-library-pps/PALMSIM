@@ -43,7 +43,7 @@ class Trunk(object):
 
     specific_maintenance:
         value: 0.0005
-        unit: 'tonne_CH2O/tonne_DM/day'
+        unit: 'kg_CH2O/kg_DM/day'
         info: 'The specific maintenance.'
         source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
         uncertainty: 20%
@@ -57,21 +57,25 @@ class Trunk(object):
 
     mass_loss_rate:
         value: 0.0
-        unit: 't/ha/mo'
+        unit: 't/ha/day'
         info: 'The mass loss rate.'
-        source: 'Assumption, first made by Alba/Hoffman.'
-        uncertainty: 1%
+        source: 'Assumption: the trunk loses no mass --- first made by Alba/Hoffman.'
+        uncertainty: 0%
 
     potential_growth_rates:
-        value: [[0,1.1],
-                [60,1.1],
-                [120,1.1],
-                [180,.9],
-                [240,0.63],
-                [360,0.225]]
-        unit: 'MAP, t/palm/mo'
+        value: [[0, 1.6],
+                 [3, 9.5],
+                 [6, 19.6],
+                 [9, 22.8],
+                 [12, 19.2],
+                 [15, 13.5],
+                 [18, 8.6],
+                 [21, 5.2],
+                 [24, 3.0],
+                 [27, 1.7]]
+        unit: 'YAP, kg/palm/year'
         info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
-        source: 'Based on reported growth rates found in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
+        source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
         uncertainty: 10%
 
     ''')
@@ -87,17 +91,17 @@ class Trunk(object):
 
     units = yaml.load('''
 
-    assim_growth: 't_CH2O/ha/mo'
-    maintenance_requirement: 't_CH2O/ha/mo'
+    assim_growth: 't_CH2O/ha/day'
+    maintenance_requirement: 't_CH2O/ha/day'
     mass: 't_DM/ha'
-    mass_change_rate: 't_DM/ha/mo'
+    mass_change_rate: 't_DM/ha/day'
     mass_per_palm: 'kg_DM/palm'
-    mass_change_rate_per_palm: 'kg_DM/palm/mo'
-    mass_growth_rate: 't_DM/ha/mo'
-    mass_loss_rate: 't_DM/ha/mo'
-    potential_growth_rate: 't_DM/ha/mo'
-    potential_growth_rate_per_palm: 'kg_DM/palm/mo'
-    potential_sink_strength: 't_CH2O/ha/mo'
+    mass_change_rate_per_palm: 'kg_DM/palm/day'
+    mass_growth_rate: 't_DM/ha/day'
+    mass_loss_rate: 't_DM/ha/day'
+    potential_growth_rate: 't_DM/ha/day'
+    potential_growth_rate_per_palm: 'kg_DM/palm/day'
+    potential_sink_strength: 't_CH2O/ha/day'
 
     ''')
 
@@ -131,67 +135,77 @@ class Trunk(object):
             return self._palm.management.planting_density
 
     @property
-    def _MAP(self):
-        ''' Months after planting (month). '''
+    def _YAP(self):
+        ''' Years after planting (year). '''
         if self._palm is None:
             return 0
         else:
-            return self._palm.MAP
+            return self._palm.YAP
 
     #~~~~~~~~~~~~~~~~
 
     def update(self,dt=1):
-        ''' Update state by a (dt=1) (30-day) month.'''
+        ''' Update state by dt days.'''
 
         self.mass += self.mass_change_rate*dt
 
-        if self.mass < 0:
-            raise ValueError
+        assert self.mass >= 0
 
     #~~~~~~~~~~~~~~~~
 
     @property
     def mass_change_rate(self):
-        ''' Mass change rate (t_DM/ha/mo). '''
+        ''' Mass change rate (t_DM/ha/day). '''
+
         return self.mass_growth_rate - self.mass_loss_rate
 
     @property
     def mass_growth_rate(self):
-        ''' Mass change rate (t_DM/ha/mo). '''
+        ''' Mass change rate (t_DM/ha/day). '''
+
         c = self.parameters['conversion_efficiency']['value']
+
         return c*self.assim_growth
 
     @property
     def mass_loss_rate(self):
-        ''' Mass loss rate (t_DM/ha/mo)'''
+        ''' Mass loss rate (t_DM/ha/day)'''
+
         return self.parameters['mass_loss_rate']['value']
 
     #~~~~~~~~~~~~~~~
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/mo). '''
+        ''' Potential growth rate (kg_DM/palm/day). '''
 
-        MAP = self._MAP
+        YAP = self._YAP
 
-        return self._potential_growth_rate_spline.calc(MAP)
+        yearly_rate = self._potential_growth_rate_spline.calc(YAP)
+
+        daily_rate = yearly_rate/365
+
+        return daily_rate
 
     @property
     def potential_growth_rate(self):
-        ''' Potential growth rate (t_DM/ha/mo). '''
+        ''' Potential growth rate (t_DM/ha/day). '''
 
         # [kg/palm] : [t/ha] = 0.001 * PD
+
         return 0.001*self._planting_density*self.potential_growth_rate_per_palm
 
     @property
     def potential_sink_strength(self):
-        ''' Potential sink strength (t_CH2O/ha/mo). '''
+        ''' Potential sink strength (t_CH2O/ha/day). '''
+
         c = self.parameters['conversion_efficiency']['value']
+
         return self.potential_growth_rate/c
 
     @property
     def assim_growth(self):
-        ''' Assimilates for growth (t_CH2O/ha/mo). '''
+        ''' Assimilates for growth (t_CH2O/ha/day). '''
 
         if self._palm is None:
             return self._assim_growth_
@@ -203,19 +217,14 @@ class Trunk(object):
     @property
     def maintenance_requirement(self):
 
-        ''' Maintenance requirement (t_CH2O/ha/mo).
+        ''' Maintenance requirement (t_CH2O/ha/day).
 
-        Maintenance = days_per_month (days/mo)
-                        *specific_maintenance (g_CH2O/g_DM/day)
-                        *mass (t_DM/ha)
+        Maintenance = specific_maintenance (g_CH2O/g_DM/day) * mass (t_DM/ha)
         '''
 
         c = self.parameters['specific_maintenance']['value']
 
-        res = DAYS_PER_MONTH*c*self.mass
-
-        if res < 0:
-            raise ValueError
+        res = c * self.mass
 
         return res
 
@@ -228,5 +237,5 @@ class Trunk(object):
 
     @property
     def mass_change_rate_per_palm(self):
-        ''' Mass change rate (kg_DM/palm/mo). '''
+        ''' Mass change rate (kg_DM/palm/day). '''
         return 1000*(1/self._planting_density)*self.mass_change_rate

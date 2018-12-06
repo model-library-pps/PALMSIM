@@ -6,6 +6,7 @@ import yaml
 import numpy as np
 
 from .helpers import add_dumps
+from .helpers import Spline
 
 from .constants import DAYS_PER_MONTH
 from .constants import DEFAULT_PLANTING_DENSITY
@@ -53,25 +54,34 @@ class Roots(object):
         uncertainty: 10%
 
     loss_param_a:
-        value: 0.013
-        unit: '1/month'
+        value: 0.000433
+        unit: '1/day'
         info: 'Co-determines the mass loss rate of the roots.'
         source: 'The legacy version; PalmSim 2014.'
         uncertainty: 20%
 
     loss_param_b:
-        value: 0.06
-        unit: 't/ha/mo'
+        value: 0.0018
+        unit: 't/ha/day'
         info: 'Co-determines the mass loss rate of the roots.'
         source: 'The legacy version; PalmSim 2014.'
         uncertainty: 20%
 
-    potential_growth_rate:
-        value: 1.35
-        unit: 'kg/palm/month'
-        info: 'The potential growth rate'
-        source: 'Based on Corley et al., 1971, Productivity of the Oil Palm in Malaysia.'
-        uncertainty: 5%
+    potential_growth_rates:
+        value: [[0, 4.5],
+                 [3, 4.5],
+                 [6, 4.5],
+                 [9, 4.5],
+                 [12, 4.5],
+                 [15, 4.5],
+                 [18, 4.5],
+                 [21, 4.5],
+                 [24, 4.5],
+                 [27, 4.5]]
+        unit: 'YAP, kg/palm/year'
+        info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
+        source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
+        uncertainty: 10%
 
     ''')
 
@@ -79,7 +89,7 @@ class Roots(object):
 
         mass:
             value: 4
-            uncertainty: 50%
+            uncertainty: 20%
             unit: 't_DM/palm'
             info: 'Initial weight of the plant part.'
             source: 'Based on Corley, 1971.'
@@ -87,16 +97,16 @@ class Roots(object):
 
     units = yaml.load('''
 
-        assim_growth: 't_CH2O/ha/mo'
-        maintenance_requirement: 't_CH2O/ha/mo'
+        assim_growth: 't_CH2O/ha/day'
+        maintenance_requirement: 't_CH2O/ha/day'
         mass: 't_DM/ha'
         mass_per_palm: 'kg_DM/palm'
-        mass_change_rate: 't_DM/ha/mo'
-        mass_growth_rate: 't_DM/ha/mo'
-        mass_loss_rate: 't_DM/ha/mo'
-        potential_growth_rate: 't_DM/ha/mo'
-        potential_growth_rate_per_palm : 'kg_DM/ha/mo'
-        potential_sink_strength: 't_CH2O/ha/mo'
+        mass_change_rate: 't_DM/ha/day'
+        mass_growth_rate: 't_DM/ha/day'
+        mass_loss_rate: 't_DM/ha/day'
+        potential_growth_rate: 't_DM/ha/day'
+        potential_growth_rate_per_palm : 'kg_DM/ha/day'
+        potential_sink_strength: 't_CH2O/ha/day'
 
     ''')
 
@@ -112,6 +122,11 @@ class Roots(object):
         mass_per_palm = self.initial_values['mass']['value']
         self.mass = 0.001*self._planting_density*mass_per_palm
 
+        # convert potential growth rate values (pgr) to a pgr function
+        # - a (cubic: k=3) spline
+        pgrs = self.parameters['potential_growth_rates']['value']
+        self._potential_growth_rate_spline = Spline(pgrs,k=3)
+
         # only used for testing - e.g. to see if the roots grow
         # when supplied with assimilates.
         self._assim_growth_ = 0
@@ -119,16 +134,12 @@ class Roots(object):
     #~~~~~~~~~~~~~~
 
     @property
-    def log(self):
-        return self._log
-
-    @property
-    def _MAP(self):
-        ''' Months after planting. '''
+    def _YAP(self):
+        ''' Years after planting (year). '''
         if self._palm is None:
             return 0
         else:
-            return self._palm.MAP
+            return self._palm.YAP
 
     @property
     def _planting_density(self):
@@ -137,34 +148,27 @@ class Roots(object):
         else:
             return self._palm.management.planting_density
 
-    #~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~
 
     def update(self,dt=1):
-        ''' Update state by a (dt=1) (30-day) month.'''
+        ''' Update state by dt days.'''
 
-        self._update(dt=dt)
-
-    def _update(self,dt=1):
-        ''' Update state by a (dt=1) (30-day) month. '''
-
-        # t_DM/ha
         self.mass += self.mass_change_rate*dt
 
-    #~~~~~~~~~~~~~~
+        assert self.mass >= 0
+
 
     @property
     def mass_change_rate(self):
-        ''' Mass change rate (t/ha/mo). '''
-        res = self.mass_growth_rate - self.mass_loss_rate
+        ''' Mass change rate (t_DM/ha/day). '''
 
-        if res < 0:
-            self.log.append('WARNING: Root mass change rate < 0 : {:}'.format(res))
+        return self.mass_growth_rate - self.mass_loss_rate
 
-        return max(0, res)
+    #~~~~~~~~~~~~~~~~
 
     @property
     def mass_growth_rate(self):
-        ''' Mass growth rate (t/ha/mo). '''
+        ''' Mass growth rate (t/ha/day). '''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -172,15 +176,7 @@ class Roots(object):
 
     @property
     def mass_loss_rate(self):
-        ''' Loss of root mass (DM t/ha/mo).
-
-        Note, the Hoffman version involved a trivial bound:
-
-        L = min(1*M,a*M+b)
-
-        where 1*M acts as the trivial bound;
-        the bound is met at around 0.06 DM ton/ha.
-        '''
+        ''' Loss of root mass (DM t/ha/day). '''
 
         mass = self.mass
 
@@ -200,7 +196,7 @@ class Roots(object):
 
     @property
     def assim_growth(self):
-        ''' Assimilates for growth (t_CH2O/ha/mo).
+        ''' Assimilates for growth (t_CH2O/ha/day).
 
         Determined by the potential sink strength
         in relation to that of the other modelled
@@ -214,7 +210,7 @@ class Roots(object):
 
     @property
     def potential_sink_strength(self):
-        ''' Potential sink strength (t_CH2O/ha/mo). '''
+        ''' Potential sink strength (t_CH2O/ha/day). '''
 
         c = self.parameters['conversion_efficiency']['value']
 
@@ -222,25 +218,32 @@ class Roots(object):
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/mo). '''
+        ''' Potential growth rate (kg_DM/palm/day). '''
 
-        c = self.parameters['potential_growth_rate']['value']
+        YAP = self._YAP
 
-        return c
+        yearly_rate = self._potential_growth_rate_spline.calc(YAP)
+
+        daily_rate = yearly_rate/365
+
+        loss_rate = 1000*self.mass_loss_rate/self._planting_density
+
+        corrected_rate = daily_rate + loss_rate
+
+        return corrected_rate
 
     @property
     def potential_growth_rate(self):
-        ''' Potential growth rate (t/ha/mo). '''
-
-        v = self.potential_growth_rate_per_palm
+        ''' Potential growth rate (t_DM/ha/day). '''
 
         # [kg/palm] : [t/ha] = 0.001 * PD
-        return 0.001*v*self._planting_density
+
+        return 0.001*self._planting_density*self.potential_growth_rate_per_palm
 
     @property
     def maintenance_requirement(self):
-        ''' Maintenance requirement (t_CH2O/ha/mo). '''
+        ''' Maintenance requirement (t_CH2O/ha/day). '''
 
         c = self.parameters['specific_maintenance']['value']
 
-        return DAYS_PER_MONTH*c*self.mass
+        return c*self.mass

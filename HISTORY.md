@@ -3,12 +3,13 @@ History
 =======
 
 
+
 2.3.4a (2018-11-13)
 -------------------
 
 **Improvements**
 
-- The existence of this HISTORY.md -- the dates might be a bit off (+- 1 month) before March 2018.
+- HISTORY.md -- the dates might be a bit off (+- 1 month) before March 2018.
 - An API spec file API.md
 
 2.3.3a (2018-10-01)

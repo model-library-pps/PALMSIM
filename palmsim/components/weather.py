@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Provides the Weather class which fetches each months weather data
-for associated time-series.
+Provides the Weather class which provides an interface to the weather data.
 '''
 
 import yaml
@@ -16,26 +15,24 @@ from .constants import DAYS_PER_MONTH
 class Weather(object):
     ''' Weather related logic.
 
-    The instance of this class (singleton design pattern)
-    fetches each months weather (variable values)
-    out of weather-data-time-series.
+    The instance of this class (singleton) loads the input weather data into memory and makes it easily accessible to the rest of the model.
 
-    Time-series slots:
+    Time-series:
     - radiation_series
     - rainfall_series
     - raindays_series
 
     Associated looked-up values:
-    - radiation (GJ/m2/mo)
-    - rainfall (mm/mo)
-    - raindays (1/mo)
+    - radiation (MJ/m2/day)
+    - rainfall (mm/day)
+    - rainday (1)
 
     Note, a PAR fraction* is used to translate visible radiation (input)
     to PAR intensity.
 
     *Although this is common practice for crop models
     there are reasons to believe that in reality the PAR fraction varies
-    non-trivially in the 0.4--0.5 range [no ref atm].
+    non-trivially in the 0.4--0.5 range [missing reference].
     '''
 
     parameters = yaml.load('''
@@ -46,15 +43,15 @@ class Weather(object):
         source: 'Legacy version - ad hoc.'
     ''')
 
-    units = {'PAR': 'MJ/m**2/day',
-            'PAR_monthly': 'TJ/ha/mo',
-            'radiation': 'MJ/m**2/day',
-            'radiation_monthly': 'TJ/ha/mo',
-            'radiation_series_mean': 'MJ/m**2/day',
-            'raindays': '1/mo',
-            'raindays_series_mean': '1/mo',
-            'rainfall': 'mm/mo',
-            'rainfall_series_mean': 'mm/mo',}
+    units = {'PAR'                   : 'MJ/m**2/day',
+             'PAR_monthly'           : 'TJ/ha/mo',
+             'radiation'             : 'MJ/m**2/day',
+             'radiation_monthly'     : 'TJ/ha/mo',
+             'radiation_series_mean' : 'MJ/m**2/day',
+             'raindays'              : '1/mo',
+             'raindays_series_mean'  : '1/mo',
+             'rainfall'              : 'mm/mo',
+             'rainfall_series_mean'  : 'mm/mo',}
 
     _prefix = 'weather'
 
@@ -194,7 +191,8 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
 
             self._rainfall_series = d
             self._rainfall_series_mean = float(series.mean())
@@ -222,7 +220,8 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
 
             self._radiation_series = d
             self._radiation_series_mean = float(series.mean())
@@ -250,7 +249,8 @@ class Weather(object):
 
         elif isinstance(series, pd.Series):
 
-            d = {(k.year,k.month): float(v) for k,v in series.iteritems()}
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
 
             self._raindays_series = d
             self._raindays_series_mean = float(series.mean())

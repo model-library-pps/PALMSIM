@@ -5,6 +5,8 @@
 import yaml
 import sys
 
+import traceback
+
 import numpy as np
 
 from scipy import interpolate
@@ -59,10 +61,9 @@ def add_dumps(klass):
         for key in attributes:
 
             try:
-                value = getattr(self,key)
-            except:
-                print(sys.exc_info())
-                pass
+                value = getattr(self, key)
+            except Exception as e:
+                print(traceback.format_exc())
 
             if isinstance(value,(float,int)):
                 if key in units:
@@ -107,7 +108,7 @@ def add_dumps(klass):
                 unit = '?'
 
             if isinstance(value,(int,float)):
-                lines += ['{:<40.40} {:>9.2f}  {:<12}'.format(var,value,unit)]
+                lines += ['{:<40.40} {:>9.4f}  {:<12}'.format(var,value,unit)]
             else:
                 pass
 

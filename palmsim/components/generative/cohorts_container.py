@@ -59,6 +59,18 @@ class Organs(object):
             info: 'The fresh to dry mass of a bunch.'
             source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
 
+        onset_time:
+            value: 14
+            unit: 'month'
+            info: 'The time of onset of inflorescence production that leads to actual harvestible bunches in terms of MAP.'
+            source: 'Calibration -- hardly reported in the literature thus a contribution.'
+
+        onset_steepness:
+            value: .5
+            unit: '1/month'
+            info: 'The steepness of the onset of inflorescence production -- the time derivative of the onset. I.e. .5 -> in one month the fraction of inflorescences growing goes up by 50%.'
+            source: 'Calibration -- hardly reported in the literature thus a contribution.'
+
         """
     )
 
@@ -125,7 +137,12 @@ class Organs(object):
 
         After Combres et al., 2013.
         """
-        return sum([x.Ic for x in self.cohorts])/len(self.cohorts)
+        N = len(self.cohorts)
+
+        if N == 0:
+            return None
+        else:
+            sum([x.Ic for x in self.cohorts])
 
     @property
     def stress_index(self):
@@ -483,10 +500,17 @@ class Organs(object):
     #############
     # New cohorts
     #############
+    def calc_onset_multiplicity(self, MAP, steepness=.5):
+        """ Helps model the on-set of inflorescence growth. """
+        t0 = self.parameters['onset_time']['value']
+        return sigmoid(MAP,t0,steepness)
+
     @property
     def onset_multiplicity_factor(self):
-        """ Mimics sigmoidal on-set of number of inflorescence. """
-        return sigmoid(self._MAP,16,.1)
+        """ Helps model the on-set of inflorescence growth. """
+        MAP = self._MAP
+        steepness = self.parameters['onset_steepness']['value']
+        return self.calc_onset_multiplicity(MAP, steepness = steepness)
 
     @property
     def initiation_rate(self):
