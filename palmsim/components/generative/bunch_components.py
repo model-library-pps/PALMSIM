@@ -5,7 +5,7 @@ from ..constants import DAYS_PER_MONTH
 import yaml
 
 def make_quadratic_function(x1,x2,A):
-    """ Returns a strictly positive quadratic function.
+    """ Returns a (strictly positive) quadratic function.
 
     We use the fact that "the area below a parabola" is 2/3*height*base.
 
@@ -76,7 +76,7 @@ class BunchComponent(object):
 
         specific_maintenance:
             value: 0.0005
-            unit: 'tonne_CH2O/tonne_DM/day'
+            unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
 
@@ -93,14 +93,14 @@ class BunchComponent(object):
         mass                             : 'kg_DM'
         potential_mass                   : 'kg_DM'
         age                              : 'month'
-        assim_growth                     : 'kg_CH2O/month'
+        assim_growth                     : 'kg_CH2O/day'
         conversion_efficiency            : 'g_DM/g_CH2O'
-        specific_maintenance_requirement : 'tonne_CH2O/tonne_DM/day'
-        maintenance_requirement          : 'kg_CH2O/month'
+        specific_maintenance_requirement : 'g_CH2O/g_DM/day'
+        maintenance_requirement          : 'kg_CH2O/day'
         mass_growth_rate                 : 'kg_DM/month'
         mass_growth_rate_potential       : 'kg_DM/month'
         relative_sink_strength           : '1'
-        potential_sink_strength          : 'kg_CH2O/month'
+        potential_sink_strength          : 'kg_CH2O/day'
 
     """)
 
@@ -126,9 +126,11 @@ class BunchComponent(object):
 
         # state
         self.mass = 0
+
+        # in days
         self.age = 0
 
-        # driving rate variable
+        # the driving rate variable
         self.potential_sink_strength = self.get_potential_sink_strength()
 
         # dummy variable for proto-typing
@@ -158,7 +160,7 @@ class BunchComponent(object):
 #~~~~~~~~~~~~~~~~
 
     def get_potential_sink_strength(self):
-        """ Potential sink strength (kg CH2O/month).
+        """ Potential sink strength (kg_CH2O/day).
 
         Follows from the potential mass growth rate and the
         conversion efficiency.
@@ -169,7 +171,7 @@ class BunchComponent(object):
 
     @property
     def mass_growth_rate_potential(self):
-        """ The potential mass growth rate (kg DM/month).
+        """ The potential mass growth rate (kg_DM/day).
 
         Is a function of palm age.
         """
@@ -190,7 +192,7 @@ class BunchComponent(object):
 
     @property
     def assim_growth(self):
-        """ The realised sink strength (kg CH2O/month). """
+        """ The realised sink strength (kg_CH2O/day). """
         if self._cohort is None:
             # assume proto-typing
             return self._assim_growth
@@ -203,24 +205,24 @@ class BunchComponent(object):
 
     @property
     def mass_growth_rate(self):
-        """ The realised mass growth rate (kg DM/month). """
+        """ The realised mass growth rate (kg_DM/day). """
 
         c = self.parameters['conversion_efficiency']['value']
 
         res = c*self.assim_growth
         cap = self.mass_growth_rate_potential
-        #return res
+
         return min(cap,res)
 
 #~~~~~~~~~~~~~~~~
 
     @property
     def maintenance_requirement(self):
-        """ The maintenance resp. requirement (kg CH2O/month). """
+        """ The maintenance resp. requirement (kg_CH2O/day). """
 
         c = self.parameters['specific_maintenance']['value']
 
-        return DAYS_PER_MONTH*c*self.mass
+        return c*self.mass
 
 #~~~~~~~~~~~~~~~~
 
@@ -231,11 +233,11 @@ class BunchComponent(object):
     # must be done in a synchronized manner
 
     def update_mass(self,dt=1):
-        """ Update the mass by a month. """
+        """ Update the mass by dt days. """
         self.mass += self.mass_growth_rate*dt
 
     def update_age(self,dt=1):
-        """ Update the age by a month and set the potential sink strength. """
+        """ Update the age by dt days and set the potential sink strength. """
         self.age += dt
         self.potential_sink_strength = self.get_potential_sink_strength()
 
@@ -287,7 +289,7 @@ class Stalk(BunchComponent):
 
         specific_maintenance:
             value: 0.0022
-            unit: 'tonne_CH2O/tonne_DM/day'
+            unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
@@ -331,7 +333,7 @@ class MesocarpFibers(BunchComponent):
 
         specific_maintenance:
             value: 0.0022
-            unit: 'tonne_CH2O/tonne_DM/day'
+            unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
@@ -351,8 +353,8 @@ class MesocarpFibers(BunchComponent):
             uncertainty: 5%
 
         t_growth_end:
-            value: 5
-            unit: 'month'
+            value: 150
+            unit: 'days'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
@@ -373,7 +375,7 @@ class MesocarpOil(BunchComponent):
     parameters = yaml.load("""
         specific_maintenance:
             value: 0.0022
-            unit: 'tonne_CH2O/tonne_DM/day'
+            unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
@@ -386,15 +388,15 @@ class MesocarpOil(BunchComponent):
             uncertainty: 5%
 
         t_growth_start:
-            value: 3
-            unit: 'month'
+            value: 90
+            unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 5
-            unit: 'month'
+            value: 150
+            unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
@@ -417,7 +419,7 @@ class Kernels(BunchComponent):
 
         specific_maintenance:
             value: 0.0022
-            unit: 'tonne_CH2O/tonne_DM/day'
+            unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
@@ -430,15 +432,15 @@ class Kernels(BunchComponent):
             uncertainty: 5%
 
         t_growth_start:
-            value: 2
-            unit: 'month'
+            value: 60
+            unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 6
-            unit: 'month'
+            value: 180
+            unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%

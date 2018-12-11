@@ -7,7 +7,7 @@ from .cohorts import Indeterminate
 import yaml
 
 @add_dumps
-class Organs(object):
+class Cohorts(object):
     """ The interface between the palm and the cohorts.
 
     Acts like a manager i.e. manages the flow of assimilates
@@ -76,40 +76,40 @@ class Organs(object):
 
     units = yaml.load("""
 
-        assim_growth                    : 't_DM/ha/month'
-        bunch_production                : 't_DM/ha/month'
+        assim_growth                    : 'kg_DM/ha/day'
+        bunch_production                : 'kg_DM/ha/day'
         count                           : '1/ha'
         count_females                   : '1/ha'
         count_indeterminates            : '1/ha'
         count_males                     : '1/ha'
-        EFB_production                  : 't DM/ha/month'
+        EFB_production                  : 'kg_DM/ha/day'
         fraction_initiated              : '1'
-        frond_initiation_rate           : '1/palm/month'
-        initiation_rate                 : '1/palm/month'
+        frond_initiation_rate           : '1/palm/day'
+        initiation_rate                 : '1/palm/day'
         initial_multiplicity            : '1/cohort'
-        maintenance_requirement         : 't_DM/month'
-        mass                            : 't_DM/ha'
-        mass_females                    : 't_DM/ha'
-        mass_indeterminates             : 't_DM/ha'
-        mass_males                      : 't_DM/ha'
-        max_age                         : 'month'
-        mean_age                        : 'month'
+        maintenance_requirement         : 'kg_CH2O/ha/day'
+        mass                            : 'kg_DM/ha'
+        mass_females                    : 'kg_DM/ha'
+        mass_indeterminates             : 'kg_DM/ha'
+        mass_males                      : 'kg_DM/ha'
+        max_age                         : 'day'
+        mean_age                        : 'day'
         multiplicity                    : '1/ha'
-        potential_sink_strength         : 't_CH2O/ha/month'
+        potential_sink_strength         : 'kg_CH2O/ha/day'
         bunch_weight                    : 'kg_DM'
         bunch_weight_fresh              : 'kg'
-        bunch_count                     : '1/ha/month'
+        bunch_count                     : '1/ha/day'
         onset_multiplicity_factor       : '1'
         bunch_failure_fraction          : '1'
         inflorescence_abortion_fraction : '1'
         number_of_cohorts               : '1'
         female_fraction                 : '1'
         FFB_production                  : 't/ha/yr'
-        PKO_production                  : 't_DM/ha/month'
-        CPO_production                  : 't_DM/ha/month'
-        assim_growth_females            : 't_CH2O/ha/month'
-        assim_growth_indeterminates     : 't_CH2O/ha/month'
-        assim_growth_males              : 't_CH2O/ha/month'
+        PKO_production                  : 'kg_DM/ha/day'
+        CPO_production                  : 'kg_DM/ha/day'
+        assim_growth_females            : 'kg_CH2O/ha/day'
+        assim_growth_indeterminates     : 'kg_CH2O/ha/day'
+        assim_growth_males              : 'kg_CH2O/ha/day'
         mesocarp_oil_content            : '1'
         Ic : '1'
 
@@ -130,6 +130,13 @@ class Organs(object):
 
         # pool of cohorts marked for deletion
         self.to_delete = []
+
+    @property
+    def _dt(self):
+        if self._palm is None:
+            return 1
+        else:
+            return self._palm.dt
 
     @property
     def Ic(self):
@@ -171,13 +178,17 @@ class Organs(object):
         """ The palm age in months after planting. """
         if self._palm is None:
 
-            return 40
+            return 36
         else:
             return self._palm.MAP
 
     @property
     def _YAP(self):
-        return self._MAP//12
+        if self._palm is None:
+
+            return 3
+        else:
+            return self._palm.YAP
 
     ##############
     # Inter-facing
@@ -191,7 +202,7 @@ class Organs(object):
 
     @property
     def frond_initiation_rate(self):
-        """ New indeterminate cohorts (1/ha/month). """
+        """ New indeterminate cohorts (1/ha/day). """
         if self._palm is None:
             return 0
         else:
@@ -199,18 +210,18 @@ class Organs(object):
 
     @property
     def maintenance_requirement(self):
-        """ The generative maintenance requirement. """
-        return 0.001*sum([x.maintenance_requirement*x.multiplicity for x in self.cohorts])
+        """ The generative maintenance requirement (kg_CH2O/ha/day). """
+        return sum([x.maintenance_requirement*x.multiplicity for x in self.cohorts])
 
     ###############
     # Sink-strength
     ###############
     def get_potential_sink_strength(self):
-        """ The total potential sink strength (tonne_CH2O/ha/month). """
-        return 0.001*sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
+        """ The total potential sink strength (kg_CH2O/ha/day). """
+        return sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
 
     def get_assim_growth(self):
-        """ The assimilates for generative growth. (kg_CH2O/month) """
+        """ The assimilates for generative growth. (kg_CH2O/ha/day) """
         if self._palm is None:
             return self._assim_growth
         else:
@@ -274,7 +285,7 @@ class Organs(object):
         for cohort in self.cohorts:
 
             if (cohort.sex == 'indeterminate') \
-                    and (cohort.age > cohort.age_of_differentiation):
+                    and (cohort.age > cohort.t_differentiation):
 
                     f = cohort.to_female()
                     m = cohort.to_male()
@@ -300,9 +311,9 @@ class Organs(object):
     ################
     @property
     def mass(self):
-        """ The total generative mass (t_DM/ha). """
+        """ The total generative mass (kg_DM/ha). """
         temp = [x.multiplicity*x.mass for x in self.cohorts]
-        return 0.001*sum(temp)
+        return sum(temp)
 
     ##############
     # Cohort Sets
@@ -340,59 +351,54 @@ class Organs(object):
 
     @property
     def CPO_production(self):
-        """ (t_DM/ha/mo). """
+        """ (kg/ha/day). """
         res = 0
         for bunch in self.bunches:
-            res += 0.001*bunch.multiplicity*bunch.mesocarp_oil.mass
+            res += bunch.multiplicity*bunch.mesocarp_oil.mass
 
-        return res
+        return res/self._dt
 
 
     @property
     def PKO_production(self):
-        """ (t_DM/ha/mo). """
+        """ (kg/ha/day). """
         res = 0
         for bunch in self.bunches:
-            res += 0.001*bunch.multiplicity*bunch.kernel.mass
+            res += bunch.multiplicity*bunch.kernel.mass
 
-        return res
+        return res/self._dt
 
     @property
     def EFB_production(self):
-        """ (t_DM/ha/mo). """
+        """ (kg/ha/day). """
         res = 0
         for bunch in self.bunches:
             mass = bunch.stalk.mass + bunch.mesocarp_fibers.mass
-            res += 0.001*bunch.multiplicity*mass
+            res += bunch.multiplicity*mass
 
-        return res
+        return res/self._dt
 
     @property
     def bunch_production(self):
-        """ (t_DM/ha/mo) """
-        return 0.001*sum([x.multiplicity*x.mass for x in self.bunches])
+        """ (kg_DM/ha/day). """
+        return self.bunch_count*self.bunch_weight
 
     @property
     def FFB_production(self):
-        """ (t/ha/yr). """
+        """ (kg_FM/ha/yr). """
 
         c = self.parameters['bunch_FM_to_DM_ratio']['value']
 
         # monthly -> yearly
 
-        return 12*c*self.bunch_production
-
-    @property
-    def yield_FM_yearly(self):
-        """ (tonne_FM/year). """
-        months_per_year = 12
-        ratio = self.parameters['bunch_FM_to_DM_ratio']['value']
-        return months_per_year*ratio*self.bunch_production
+        return 365*c*self.bunch_production
 
     @property
     def bunch_count(self):
-        """(t_DM/month)"""
-        return sum([x.multiplicity for x in self.bunches])
+        """ (1/ha/day). """
+
+        # harvestible number of bunches --- every dt days
+        return sum([x.multiplicity for x in self.bunches])/self._dt
 
     @property
     def bunch_weight(self):
@@ -400,7 +406,15 @@ class Organs(object):
         if self.bunch_count == 0:
             return 0
         else:
-            return 1000*self.bunch_production/self.bunch_count
+            N = self.bunch_count
+
+            # harvestible mass --- every dt days
+            total_mass = sum([x.mass*x.multiplicity for x in self.bunches])
+
+            if N > 0:
+                return total_mass/(N*self._dt)
+            else:
+                return 0
 
     @property
     def bunch_weight_fresh(self):
@@ -448,18 +462,18 @@ class Organs(object):
     ######################
     @property
     def assim_growth_females(self):
-        """ Assimilates for growth (kg_DM/cohort/month). """
-        return 0.001*sum([x.assim_growth_cohort for x in self.females])
+        """ Assimilates for growth (kg_CH2O/cohort/day). """
+        return sum([x.assim_growth_cohort for x in self.females])
 
     @property
     def assim_growth_males(self):
-        """ Assimilates for growth (kg_DM/cohort/month). """
-        return 0.001*sum([x.assim_growth_cohort for x in self.males])
+        """ Assimilates for growth (kg_CH2O/cohort/day). """
+        return sum([x.assim_growth_cohort for x in self.males])
 
     @property
     def assim_growth_indeterminates(self):
-        """ Assimilates for growth (kg_DM/cohort/month). """
-        return 0.001*sum([x.assim_growth_cohort for x in self.indeterminates])
+        """ Assimilates for growth (kg_CH2O/cohort/day). """
+        return sum([x.assim_growth_cohort for x in self.indeterminates])
 
     #################
     # Fraction female
@@ -507,14 +521,14 @@ class Organs(object):
 
     @property
     def onset_multiplicity_factor(self):
-        """ Helps model the on-set of inflorescence growth. """
+        """ Helps model the on-set of inflorescence growth (1). """
         MAP = self._MAP
         steepness = self.parameters['onset_steepness']['value']
         return self.calc_onset_multiplicity(MAP, steepness = steepness)
 
     @property
     def initiation_rate(self):
-        """ New indeterminate cohorts (1/ha/month). """
+        """ New indeterminate cohorts (1/ha/day). """
         if self._palm is None:
             return self._initiation_rate
         else:
@@ -532,3 +546,8 @@ class Organs(object):
     def number_of_cohorts(self):
         """ The number of cohorts. """
         return len(self.cohorts)
+
+    @property
+    def number_of_inflorescences(self):
+        """ The number of inflorescences (1/ha). """
+        return sum([x.multiplicity for x in self.cohorts])

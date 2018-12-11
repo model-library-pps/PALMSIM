@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-''' Contains the trunk modelling.
-
-'''
+''' Provides the trunk modelling. '''
 
 import yaml
 
@@ -101,7 +99,7 @@ class Trunk(object):
     mass_growth_rate               : 'kg_DM/ha/day'
     mass_loss_rate                 : 'kg_DM/ha/day'
     potential_growth_rate          : 'kg_DM/ha/day'
-    potential_growth_rate_per_palm : 'kg_DM/palm/day'
+    potential_growth_rate_per_palm : 'kg_DM/palm/year'
     potential_sink_strength        : 'kg_CH2O/ha/day'
 
     ''')
@@ -190,21 +188,23 @@ class Trunk(object):
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/day). '''
+        ''' Potential growth rate (kg_DM/palm/year). '''
 
         YAP = self._YAP
 
         yearly_rate = self._potential_growth_rate_spline.calc(YAP)
 
-        daily_rate = yearly_rate/365
-
-        return daily_rate
+        return yearly_rate
 
     @property
     def potential_growth_rate(self):
         ''' Potential growth rate (kg_DM/ha/day). '''
 
-        return self._planting_density*self.potential_growth_rate_per_palm
+        yearly_per_palm = self.potential_growth_rate_per_palm
+
+        c = (1/365)
+
+        return c*self._planting_density*yearly_per_palm
 
     @property
     def potential_sink_strength(self):

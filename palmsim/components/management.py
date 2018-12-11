@@ -17,13 +17,13 @@ class Management(object):
 
     Main (instance) variables:
         - planting_density (1/ha)
-        - prune_rate (1/ha/month)
-        - prune_rate_mass (t DM/ha/month)
+        - prune_rate (1/ha/day)
+        - prune_rate_mass (t DM/ha/day)
 
     Notes
     -----
     The legacy version (2014) made use of a "goal frond mass"
-    to determine the prune rate in terms of mass (t DM/ha/month).
+    to determine the prune rate in terms of mass (t DM/ha/day).
 
     This current version revolves around goal frond count(s) (!)
     from which the mass prune rate follows.
@@ -90,11 +90,11 @@ class Management(object):
         fronds_goal_count_per_palm: 1/ha
         is_periodic_pruning_month: bool
         planting_density: palms/ha
-        potential_periodic_prune_rate: 1/ha/mo
-        prune_rate: 1/ha/mo
-        prune_rate_harvest: 1/ha/mo
-        prune_rate_mass: t_DM/ha/mo
-        prune_rate_periodic: 1/ha/mo
+        potential_periodic_prune_rate: 1/ha/day
+        prune_rate: 1/ha/day
+        prune_rate_harvest: 1/ha/day
+        prune_rate_mass: kg_DM/ha/day
+        prune_rate_periodic: 1/ha/day
 
         ''')
 
@@ -129,7 +129,7 @@ class Management(object):
 
     @property
     def prune_rate_mass(self):
-        ''' Prune rate (tonne_DM/ha/month) in terms of frond DM mass. '''
+        ''' Prune rate (kg_DM/ha/day) in terms of frond DM mass. '''
 
         if self._palm is None:
             return 0
@@ -140,28 +140,29 @@ class Management(object):
 
     @property
     def prune_rate(self):
-        ''' Prune rate (1/ha/month) in terms of frond count. '''
+        ''' Prune rate (1/ha/day) in terms of frond count. '''
         if self._palm is None:
             return 0
         else:
-            periodic_pruning = self.prune_rate_periodic
-            harvest_pruning = self.prune_rate_harvest
-            pruning = periodic_pruning + harvest_pruning
+            pruning = self.prune_rate_periodic + self.prune_rate_harvest
             return pruning
 
     @property
     def potential_periodic_prune_rate(self):
-        ''' Periodic prune rate (1/ha/month). '''
+        ''' Periodic prune rate (1/ha/day). '''
         if self._palm is None:
             return 0
         else:
-            return max(0,self.frond_count -\
-                             self.fronds_goal_count -\
-                              self.prune_rate_harvest)
+            timespan = 30 # days
+            available = self.frond_count - self.prune_rate_harvest
+            target = self.fronds_goal_count
+            target_change = max(0, available - target)
+            target_rate = target_change/timespan
+            return target_rate
 
     @property
     def _prune_period(self):
-        ''' Periodic prune rate (1/month). '''
+        ''' Prune period. '''
         return self.parameters['prune_period']['value']
 
     @property
@@ -181,7 +182,7 @@ class Management(object):
 
     @property
     def prune_rate_periodic(self):
-        ''' Periodic prune rate (1/ha/month).
+        ''' Periodic prune rate (1/ha/day).
 
         For the time being, since we do not model senescence.
         We act as if before bunch production sets on
@@ -199,11 +200,11 @@ class Management(object):
 
     @property
     def prune_rate_harvest(self):
-        ''' Harvest related prune rate (1/ha/month). '''
+        ''' Harvest related prune rate (1/ha/day). '''
         if self._palm is None:
             return 0
         else:
-            return max(0,self._palm.organs.bunch_count)
+            return max(0, self._palm.generative.bunch_count)
 
     @property
     def fronds_goal_count_per_palm(self):

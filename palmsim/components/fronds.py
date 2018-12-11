@@ -226,7 +226,7 @@ class Fronds(object):
         mass_change_rate_per_palm      : 'kg_DM/palm/year'
         mass_growth_rate               : 'kg_DM/ha/day'
         mass_loss_rate                 : 'kg_DM/ha/day'
-        mean_leaf_area                 : 'm2'
+        mean_leaf_area                 : 'm2/frond'
         plastochron                    : 'day'
         leaf_area_per_palm             : 'm2'
         initiation_rate                : '1/palm/day'
@@ -240,7 +240,7 @@ class Fronds(object):
         count_loss_rate                : '1/ha/day'
         LUE                            : 'g_CH2O/MJ PAR'
         potential_growth_rate          : 'kg_DM/ha/day'
-        potential_growth_rate_per_palm : 'kg_DM/palm/day'
+        potential_growth_rate_per_palm : 'kg_DM/palm/year'
         potential_sink_strength        : 'kg_CH2O/ha/day'
         prune_rate                     : '1/ha/day'
         prune_rate_mass                : 'kg_DM/ha/day'
@@ -354,11 +354,15 @@ class Fronds(object):
     def _update_mass(self,dt=1):
         ''' Update the mass (t_DM/ha) by dt days. '''
 
-        self.mass += (1/365)*self.mass_change_rate*dt
+        self.mass += self.mass_change_rate*dt
+
+        assert self.mass >= 0
 
     def _update_count(self,dt=1):
         ''' Update the count (1/ha) by dt days. '''
         self.count += self.count_change_rate*dt
+
+        assert self.count >= 0
 
     #~~~~~~~~~~~~~~~~
 
@@ -415,7 +419,7 @@ class Fronds(object):
     @property
     def initiation_rate(self):
 
-        ''' The frond initiation_rate/count growth rate (1/day).
+        ''' The frond initiation_rate/count growth rate (1/palm/day).
 
         Uses a fit to field observations; a Gompertz function
 
@@ -517,21 +521,23 @@ class Fronds(object):
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/day). '''
+        ''' Potential growth rate (kg_DM/palm/year). '''
 
         monthly_rate = self.parameters['potential_growth_rate']['value']
 
-        daily_rate = monthly_rate/30
+        yearly_rate = 12 * monthly_rate
 
-        return daily_rate
+        return yearly_rate
 
     @property
     def potential_growth_rate(self):
         ''' Potential growth rate (kg_DM/ha/day) '''
 
-        v = self.potential_growth_rate_per_palm
+        yearly_rate = self.potential_growth_rate_per_palm
 
-        return v*self._planting_density
+        c = (1/365)
+
+        return c * yearly_rate * self._planting_density
 
     @property
     def assim_growth(self):
@@ -549,6 +555,7 @@ class Fronds(object):
         ''' The LAI (total leaf area/ total ground area). '''
 
         # 0.0001 ha/m2
+
         return 0.0001*self.total_leaf_area
 
     @property

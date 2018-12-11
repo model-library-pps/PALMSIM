@@ -11,6 +11,8 @@ from .helpers import Spline
 from .constants import DAYS_PER_MONTH
 from .constants import DEFAULT_PLANTING_DENSITY
 
+''' Provides the roots modelling. '''
+
 @add_dumps
 class Roots(object):
     ''' A class which models a field of roots.
@@ -107,7 +109,7 @@ class Roots(object):
         mass_growth_rate: 'kg_DM/ha/day'
         mass_loss_rate: 'kg_DM/ha/day'
         potential_growth_rate: 'kg_DM/ha/day'
-        potential_growth_rate_per_palm : 'kg_DM/palm/day'
+        potential_growth_rate_per_palm : 'kg_DM/palm/year'
         potential_sink_strength: 'kg_CH2O/ha/day'
 
     ''')
@@ -238,21 +240,23 @@ class Roots(object):
 
     @property
     def potential_growth_rate_per_palm(self):
-        ''' Potential growth rate (kg_DM/palm/day). '''
+        ''' Potential growth rate (kg_DM/palm/year). '''
 
         YAP = self._YAP
 
         yearly_rate = self._potential_growth_rate_spline.calc(YAP)
 
-        daily_rate = yearly_rate/365
-
-        return daily_rate
+        return yearly_rate
 
     @property
     def potential_growth_rate(self):
         ''' Potential growth rate (kg_DM/ha/day). '''
 
-        return self._planting_density*self.potential_growth_rate_per_palm + self.mass_loss_rate
+        yearly_per_palm = self.potential_growth_rate_per_palm
+
+        c = (1/365)
+
+        return c*self._planting_density*yearly_per_palm + self.mass_loss_rate
 
     @property
     def maintenance_requirement(self):

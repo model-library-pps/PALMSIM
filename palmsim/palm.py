@@ -23,7 +23,7 @@ from .components.constants import DEFAULT_PLANTING_DENSITY
 from .components.fronds import Fronds
 from .components.trunk  import Trunk
 from .components.roots  import Roots
-from .components.generative        import Organs
+from .components.generative        import Cohorts
 from .components.assimilates       import Assimilates
 from .components.management        import Management
 from .components.soil              import Soil
@@ -194,13 +194,13 @@ class PalmField():
         self.fronds      = Fronds(self)
         self.roots       = Roots(self)
         self.trunk       = Trunk(self)
-        self.organs      = Organs(self)
+        self.generative  = Cohorts(self)
         self.assimilates  = Assimilates(self)
 
         self.components = [self.fronds,
                             self.roots,
                             self.trunk,
-                            self.organs,
+                            self.generative,
                             self.assimilates,
                             self.weather,
                             self.soil,
@@ -285,7 +285,7 @@ class PalmField():
         self.trunk.update(dt=dt)
         self.roots.update(dt=dt)
 
-        self.organs.update(dt=dt)
+        self.generative.update(dt=dt)
 
     #########################
     # Mass: alternative units
@@ -304,12 +304,12 @@ class PalmField():
     @property
     def yield_DM(self):
         ''' The dry-matter bunch yield (t DM/ha/month). '''
-        return self.organs.bunch_production
+        return self.generative.bunch_production
 
     @property
     def mass_generative(self):
-        ''' The mass of all the generative organs (t DM/ha). '''
-        return self.organs.mass
+        ''' The mass of all the generative Cohorts (t DM/ha). '''
+        return self.generative.mass
 
     @property
     def trunk_mass_per_palm(self):

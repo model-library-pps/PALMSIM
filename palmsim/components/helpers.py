@@ -108,7 +108,7 @@ def add_dumps(klass):
                 unit = '?'
 
             if isinstance(value,(int,float)):
-                lines += ['{:<40.40} {:>9.4f}  {:<12}'.format(var,value,unit)]
+                lines += ['{:<40.40} {:>9.3f}  {:<12}'.format(var,value,unit)]
             else:
                 pass
 

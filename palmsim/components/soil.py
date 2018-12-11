@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 
-''' Provides the soil-water balance models.
-
-Developed for Python 3.
-'''
+''' Provides the soil-water balance models. '''
 
 import yaml
 import numpy as np
 
 from .helpers import add_dumps
-
-from .constants import DAYS_PER_MONTH
 
 @add_dumps
 class IRHOSoil(object):
@@ -65,18 +60,18 @@ class IRHOSoil(object):
         value: 400.
         unit: 'mm'
         info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Input: soil characteristic.'
+        source: 'Input: soil/root characteristic.'
 
     high_ET_monthly:
-        value: 150
-        unit: 'mm/month'
+        value: 5
+        unit: 'mm/day'
         info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
         source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
         error: 0
 
     low_ET_monthly:
-        value: 120
-        unit: 'mm/month'
+        value: 4
+        unit: 'mm/day'
         info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
         source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
         error: 0
@@ -108,21 +103,21 @@ class IRHOSoil(object):
     units = yaml.load('''
 
         available_water                   : 'mm'
-        drainage                          : 'mm/month'
+        drainage                          : 'mm/day'
         conversion_efficiency_limiter     : '1'
         water_deficit                     : 'mm'
         water_contained                   : 'mm'
         raindays                          : 'days/month'
-        rainfall_monthly                  : 'mm/month'
+        rainfall                          : 'mm/day'
         critical_deficit_exceedance       : 'mm'
         critical_deficit                  : 'mm'
         ET_monthly_potential              : 'mm'
         moisture_content                  : '1'
         relative_transpiration_rate       : '1'
         water_holding_capacity            : 'mm'
-        available_water_change_rate       : 'mm/month'
-        available_water_change_rate_daily : 'mm/day'
-        evapotranspiration                : 'mm/month'
+        available_water_change_rate       : 'mm/day'
+        evapotranspiration                : 'mm/day'
+        evapotranspiration_potential      : 'mm/day'
 
     ''')
 
@@ -131,8 +126,6 @@ class IRHOSoil(object):
     def __init__(self,palm=None):
 
         self._palm = palm
-
-        self._internal_dt = 3 # days
 
         self.available_water = self.initial_values['available_water']['value']
 
@@ -160,7 +153,7 @@ class IRHOSoil(object):
 
     @property
     def rainfall(self):
-        ''' Rainfall (mm/month). '''
+        ''' Rainfall (mm/day). '''
         if self._weather is None:
             return self._rainfall_
         else:
@@ -190,43 +183,17 @@ class IRHOSoil(object):
     #~~~~~~~~~~~~~~~~
 
     def update(self, dt=1):
-        ''' Update by dt months.
+        ''' Update by dt days. '''
 
-        Internally, the soil is updated N times
-        in 1/N monthly time-steps.
+        self.available_water += self.available_water_change_rate*dt
 
-        This to account for any non-linear dynamics.
-        '''
-
-        ndays = dt*DAYS_PER_MONTH
-
-        step_size = self._internal_dt
-
-        nsteps, remainder = divmod(ndays,step_size)
-
-        for step in range(nsteps):
-            self._update(dt=step_size)
-
-        self._update(dt=remainder)
-
-        if self.available_water < 0:
-            raise ValueError
-
-    def _update(self,dt):
-        ''' Update by a day. '''
-
-        self.available_water += self.available_water_change_rate_daily*dt
+        assert self.available_water >= 0
 
     #~~~~~~~~~~~~~~~~
 
     @property
-    def available_water_change_rate_daily(self):
-        ''' Rate with which the water held changes (mm/day). '''
-        return self.available_water_change_rate/DAYS_PER_MONTH
-
-    @property
     def available_water_change_rate(self):
-        ''' Rate with which the water held changes (mm/month).
+        ''' Rate with which the water held changes (mm/day).
 
         Follows from the sum of rainfall_monthly (P),
         ET_monthly (ET) and drainage_monthly (D):
@@ -244,7 +211,7 @@ class IRHOSoil(object):
 
     @property
     def evapotranspiration(self):
-        ''' Actual evapotransipiration (ET) rate (mm/month). '''
+        ''' Actual evapotransipiration (ET) rate (mm/day). '''
         return self.relative_transpiration_rate*self.evapotranspiration_potential
 
     @property
@@ -282,7 +249,7 @@ class IRHOSoil(object):
 
     @property
     def drainage(self):
-        ''' Drainage rate (mm/month).
+        ''' Drainage rate (mm/day).
 
         Here taken broadly as any process bringing the
         water level to the water holding capacity:

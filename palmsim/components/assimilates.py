@@ -39,30 +39,30 @@ class Assimilates(object):
 
     units = yaml.load("""
 
-        assim_growth_fronds                : 't_CH2O/ha/mo'
-        assim_growth_generative            : 't_CH2O/ha/mo'
-        assim_growth_male                  : 't_CH2O/ha/mo'
-        max_assim_growth_male              : 't_CH2O/ha/mo'
-        assim_growth_roots                 : 't_CH2O/ha/mo'
-        assim_growth_total                 : 't_CH2O/ha/mo'
-        assim_growth_trunk                 : 't_CH2O/ha/mo'
-        assim_growth_vegetative            : 't_CH2O/ha/mo'
-        assim_maintenance_female           : 't_CH2O/ha/mo'
-        assim_maintenance_fronds           : 't_CH2O/ha/mo'
-        assim_maintenance_generative       : 't_CH2O/ha/mo'
-        assim_maintenance_male             : 't_CH2O/ha/mo'
-        assim_maintenance_roots            : 't_CH2O/ha/mo'
-        assim_maintenance_total            : 't_CH2O/ha/mo'
-        assim_maintenance_trunk            : 't_CH2O/ha/mo'
-        assim_maintenance_vegetative       : 't_CH2O/ha/mo'
-        assim_produced                     : 't_CH2O/ha/mo'
-        potential_sink_strength_vegetative : 't_CH2O/ha/mo'
-        potential_sink_strength_fronds     : 't_CH2O/ha/mo'
-        potential_sink_strength_generative : 't_CH2O/ha/mo'
-        potential_sink_strength_organs     : 't_CH2O/ha/mo'
-        potential_sink_strength_roots      : 't_CH2O/ha/mo'
-        potential_sink_strength_total      : 't_CH2O/ha/mo'
-        potential_sink_strength_trunk      : 't_CH2O/ha/mo'
+        assim_growth_fronds                : 'kg_CH2O/ha/day'
+        assim_growth_generative            : 'kg_CH2O/ha/day'
+        assim_growth_male                  : 'kg_CH2O/ha/day'
+        max_assim_growth_male              : 'kg_CH2O/ha/day'
+        assim_growth_roots                 : 'kg_CH2O/ha/day'
+        assim_growth_total                 : 'kg_CH2O/ha/day'
+        assim_growth_trunk                 : 'kg_CH2O/ha/day'
+        assim_growth_vegetative            : 'kg_CH2O/ha/day'
+        assim_maintenance_female           : 'kg_CH2O/ha/day'
+        assim_maintenance_fronds           : 'kg_CH2O/ha/day'
+        assim_maintenance_generative       : 'kg_CH2O/ha/day'
+        assim_maintenance_male             : 'kg_CH2O/ha/day'
+        assim_maintenance_roots            : 'kg_CH2O/ha/day'
+        assim_maintenance_total            : 'kg_CH2O/ha/day'
+        assim_maintenance_trunk            : 'kg_CH2O/ha/day'
+        assim_maintenance_vegetative       : 'kg_CH2O/ha/day'
+        assim_produced                     : 'kg_CH2O/ha/day'
+        potential_sink_strength_vegetative : 'kg_CH2O/ha/day'
+        potential_sink_strength_fronds     : 'kg_CH2O/ha/day'
+        potential_sink_strength_generative : 'kg_CH2O/ha/day'
+        potential_sink_strength_organs     : 'kg_CH2O/ha/day'
+        potential_sink_strength_roots      : 'kg_CH2O/ha/day'
+        potential_sink_strength_total      : 'kg_CH2O/ha/day'
+        potential_sink_strength_trunk      : 'kg_CH2O/ha/day'
         assim_veg_growth_fraction_roots    : '1'
         assim_veg_growth_fraction_trunk    : '1'
         assim_veg_growth_fraction_fronds   : '1'
@@ -80,7 +80,6 @@ class Assimilates(object):
 
         self._palm = palm
 
-        self.potential_sink_strength_generative = 0
         self.potential_sink_strength_vegetative = 0
 
         # only used in testing
@@ -90,16 +89,6 @@ class Assimilates(object):
 
         # the attributes set by set attributes make up the state.
         self.set_attributes()
-
-    #~~~~~~~~~~
-
-    @property
-    def _MAP(self):
-        """ Months after planting (month). """
-        if self._palm is None:
-            return 0
-        else:
-            return self._palm.MAP
 
     #~~~~~~~~~~
 
@@ -116,7 +105,6 @@ class Assimilates(object):
         """ Set all the instance variable values. """
 
         self.potential_sink_strength_vegetative = self.get_potential_sink_strength_vegetative()
-        self.potential_sink_strength_generative = self.get_potential_sink_strength_generative()
         self.assim_produced               = self.get_assim_produced()
         self.assim_maintenance_fronds     = self.get_assim_maintenance_fronds()
         self.assim_maintenance_trunk      = self.get_assim_maintenance_trunk()
@@ -134,17 +122,13 @@ class Assimilates(object):
     #~~~~~~~~~~
 
     def get_potential_sink_strength_vegetative(self):
-        """ Sink strength (t_CH20/ha/month). """
+        """ Sink strength (kg_CH20/ha/day). """
         if self._palm is None:
             return 0
         else:
             return self._palm.fronds.potential_sink_strength + \
                     self._palm.trunk.potential_sink_strength + \
                     self._palm.roots.potential_sink_strength
-
-    def get_potential_sink_strength_generative(self):
-        """ Potential sink strength (t_CH20/ha/month). """
-        return self.potential_sink_strength_organs
 
     #~~~~~~~~~~
 
@@ -159,7 +143,7 @@ class Assimilates(object):
 
     @property
     def potential_sink_strength_fronds(self):
-        """ Potential sink strength (t_CH20/ha/month). """
+        """ Potential sink strength (kg_CH20/ha/day). """
         if self._palm is None:
             return 0
         else:
@@ -167,7 +151,7 @@ class Assimilates(object):
 
     @property
     def potential_sink_strength_trunk(self):
-        """ Potential sink strength (t_CH20/ha/month). """
+        """ Potential sink strength (kg_CH20/ha/day). """
         if self._palm is None:
             return 0
         else:
@@ -175,32 +159,32 @@ class Assimilates(object):
 
     @property
     def potential_sink_strength_roots(self):
-        """ Potential sink strength (t_CH20/ha/month). """
+        """ Potential sink strength (kg_CH20/ha/day). """
         if self._palm is None:
             return 0
         else:
             return self._palm.roots.potential_sink_strength
 
     @property
-    def potential_sink_strength_organs(self):
-        """ Potential sink strength (t_CH20/ha/month). """
+    def potential_sink_strength_generative(self):
+        """ Potential sink strength (kg_CH20/ha/day). """
         if self._palm is None:
             return 0
         else:
-            return self._palm.organs.potential_sink_strength
+            return self._palm.generative.potential_sink_strength
 
     #~~~~~~~~~~
 
     def get_assim_growth_fronds(self):
-        """ Assimilates for growth (t_CH2O/ha/month). """
+        """ Assimilates for growth (kg_CH2O/ha/day). """
         return self.assim_veg_growth_fraction_fronds * self.assim_growth_vegetative
 
     def get_assim_growth_roots(self):
-        """ Assimilates for growth (t_CH2O/ha/month). """
+        """ Assimilates for growth (kg_CH2O/ha/day). """
         return self.assim_veg_growth_fraction_roots * self.assim_growth_vegetative
 
     def get_assim_growth_trunk(self):
-        """ Assimilates for growth (t_CH2O/ha/month). """
+        """ Assimilates for growth (kg_CH2O/ha/day). """
         return self.assim_veg_growth_fraction_trunk * self.assim_growth_vegetative
 
     #~~~~~~~~~~
@@ -235,7 +219,7 @@ class Assimilates(object):
     #~~~~~~~~~~
 
     def get_assim_growth_vegetative(self):
-        """ Assimilates for growth (t_CH2O/ha/month). """
+        """ Assimilates for growth (kg_CH2O/ha/day). """
         S = self.assim_growth_total
         Ds = [self.potential_sink_strength_vegetative,
               self.potential_sink_strength_generative]
@@ -250,7 +234,7 @@ class Assimilates(object):
             return res
 
     def get_assim_growth_generative(self):
-        """ Assimilates for growth (t_CH2O/ha/month). """
+        """ Assimilates for growth (kg_CH2O/ha/day). """
         S = self.assim_growth_total
 
         potential = self.potential_sink_strength_generative
@@ -259,7 +243,6 @@ class Assimilates(object):
               potential]
 
         k = self.parameters['vegetative_priority']['value']
-
 
         res = float(parametrized_partitioning(S,Ds,k)[1])
 
@@ -285,47 +268,44 @@ class Assimilates(object):
     #~~~~~~~~~~
 
     def get_assim_maintenance_total(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
         return self.assim_maintenance_vegetative + self.assim_maintenance_generative
 
     def get_assim_maintenance_vegetative(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
         return self.assim_maintenance_roots \
                 + self.assim_maintenance_trunk \
                 + self.assim_maintenance_fronds
 
     def get_assim_maintenance_fronds(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
         if self._palm is None:
             return 0.
         else:
             return self._palm.fronds.maintenance_requirement
 
-    def get_assim_maintenance_generative(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
-        if self._palm is None:
-            return 0.
-        else:
-            return self._palm.organs.maintenance_requirement
-
     def get_assim_maintenance_trunk(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
         if self._palm is None:
             return 0.
         else:
             return self._palm.trunk.maintenance_requirement
 
     def get_assim_maintenance_roots(self):
-        """ Assimilates for maintenance (t_CH2O/ha/month). """
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
         if self._palm is None:
             return 0.
         else:
             return self._palm.roots.maintenance_requirement
 
-    #~~~~~~~~~~
+    def get_assim_maintenance_generative(self):
+        """ Assimilates for maintenance (kg_CH2O/ha/day). """
+        if self._palm is None:
+            return 0.
+        else:
+            return self._palm.generative.maintenance_requirement
 
-def sigmoid(x,x0,k):
-    return 1/(1+np.exp(-k*(x-x0)))
+    #~~~~~~~~~~
 
 def prioritized_partitioning(S,Ds):
     """ Hard-priority partitioning of supply S given demands Ds.

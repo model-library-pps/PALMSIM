@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-'''
-Provides the Weather class which provides an interface to the weather data.
-'''
+''' Provides the interface to the weather data. '''
 
 import yaml
 import numpy as np
@@ -43,15 +41,15 @@ class Weather(object):
         source: 'Legacy version - ad hoc.'
     ''')
 
-    units = {'PAR'                   : 'MJ/m**2/day',
+    units = {'PAR'                   : 'MJ/m2/day',
              'PAR_monthly'           : 'TJ/ha/mo',
-             'radiation'             : 'MJ/m**2/day',
+             'radiation'             : 'MJ/m2/day',
              'radiation_monthly'     : 'TJ/ha/mo',
-             'radiation_series_mean' : 'MJ/m**2/day',
+             'radiation_series_mean' : 'MJ/m2/day',
              'raindays'              : '1/mo',
              'raindays_series_mean'  : '1/mo',
-             'rainfall'              : 'mm/mo',
-             'rainfall_series_mean'  : 'mm/mo',}
+             'rainfall'              : 'mm/day',
+             'rainfall_series_mean'  : 'mm/day',}
 
     _prefix = 'weather'
 
@@ -86,7 +84,7 @@ class Weather(object):
 
     @property
     def PAR(self):
-        ''' Photo-synthetically active radiation (MJ/m**2/day). '''
+        ''' Photo-synthetically active radiation (MJ/m2/day). '''
         c = self.parameters['PAR_fraction']['value']
         return c*self.radiation
 
@@ -94,7 +92,7 @@ class Weather(object):
 
     @property
     def radiation(self):
-        ''' Mean monthly visible radiation (MJ/m**2/day). '''
+        ''' Mean monthly visible radiation (MJ/m2/day). '''
         t = self._date_tuple
         s = self.radiation_series
         if (t and s) and (t in s):
@@ -142,7 +140,7 @@ class Weather(object):
 
     @property
     def radiation_series(self):
-        ''' Mean monthly visible radiation (MJ/m**2/day) - time-series.
+        ''' Mean monthly visible radiation (MJ/m2/day) - time-series.
 
         A dict with a (year,month)-tuple keys and float values.
         '''
