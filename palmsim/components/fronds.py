@@ -150,28 +150,28 @@ class Fronds(object):
         uncertainty: 5%
 
     initiation_rate_a:
-        value: 22.48
+        value: 23
         unit: '1/palm/year'
         info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
         uncertainty: 5%
 
     initiation_rate_b:
-        value: 1.5
+        value: 1.6
         unit: '1'
         info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
         uncertainty: 5%
 
     initiation_rate_c:
-        value: 0.27
+        value: 0.3
         unit: '1/year'
         info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
                     An analysis of the growth of leaf area of oil palm in indonesia.
                     Table 3, experiment 1, 143 palms/ha density.'
         uncertainty: 5%

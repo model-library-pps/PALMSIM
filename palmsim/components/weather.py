@@ -103,7 +103,7 @@ class Weather(object):
     @radiation.setter
     def radiation(self, value):
 
-        if isinstance(value, float):
+        if isinstance(value, (int, float)):
             self._radiation_series_mean_ = value
         else:
             raise ValueError

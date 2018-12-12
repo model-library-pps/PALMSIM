@@ -5,6 +5,7 @@ from ..helpers import sigmoid
 from .cohorts import Indeterminate
 
 import yaml
+import numpy as np
 
 @add_dumps
 class Cohorts(object):
@@ -32,19 +33,14 @@ class Cohorts(object):
             source: 'Calibration.'
             uncertainty: 20%
 
-        female_fraction_young:
-            value: [0.95,3]
-            unit: '1,YAP'
-            info: 'The fraction female for a "young" palm. - 3 YAP, note we are explicitly qualitative here.'
-            source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
-            uncertainty: 20%
+        female_fraction_k:
+            value: .3
 
-        female_fraction_old:
-            value: [0.3,30]
-            unit: '1,YAP'
-            info: 'The fraction female for a "young" palm.'
-            source: 'Calibration - initially based on the qualitative statement found in Advances in Oil Palm Research Volume 1, 2000, p.26.'
-            uncertainty: 20%
+        female_fraction_t0:
+            value: 10
+
+        female_fraction_vasym:
+            value: .3
 
         female_fraction_minimum:
             value: 0.1
@@ -144,12 +140,7 @@ class Cohorts(object):
 
         After Combres et al., 2013.
         """
-        N = len(self.cohorts)
-
-        if N == 0:
-            return None
-        else:
-            sum([x.Ic for x in self.cohorts])
+        return 1
 
     @property
     def stress_index(self):
@@ -174,19 +165,25 @@ class Cohorts(object):
             return self._palm.soil.moisture_content
 
     @property
+    def _DAP(self):
+        """ The palm age in days after planting. """
+        if self._palm is None:
+            return 0
+        else:
+            return self._palm.DAP
+
+    @property
     def _MAP(self):
         """ The palm age in months after planting. """
         if self._palm is None:
-
-            return 36
+            return 0
         else:
             return self._palm.MAP
 
     @property
     def _YAP(self):
         if self._palm is None:
-
-            return 3
+            return 0
         else:
             return self._palm.YAP
 
@@ -358,7 +355,6 @@ class Cohorts(object):
 
         return res/self._dt
 
-
     @property
     def PKO_production(self):
         """ (kg/ha/day). """
@@ -481,21 +477,16 @@ class Cohorts(object):
     @property
     def _female_fraction(self):
         """ The female fraction at sex determination (1). """
-        y1,x1 = self.parameters['female_fraction_young']['value']
-        y2,x2 = self.parameters['female_fraction_old']['value']
 
-        x = self._MAP/12
+        t = self._DAP/365
 
-        c = (y2-y1)/(x2-x1)
+        k = self.parameters['female_fraction_k']['value']
+        t0 = self.parameters['female_fraction_t0']['value']
+        va = self.parameters['female_fraction_vasym']['value']
 
-        y = c*(x-x1) + y1
+        # a decreasing sigmoid
 
-        if y>y1:
-            return y1
-        elif y<y2:
-            return y2
-        else:
-            return y
+        return (1-va)*1/(1 + np.exp(k*(t-t0))) + va
 
     @property
     def female_fraction(self):

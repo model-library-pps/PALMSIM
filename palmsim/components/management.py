@@ -204,7 +204,7 @@ class Management(object):
         if self._palm is None:
             return 0
         else:
-            return max(0, self._palm.generative.bunch_count)
+            return 0 #max(0, self._palm.generative.bunch_count)
 
     @property
     def fronds_goal_count_per_palm(self):

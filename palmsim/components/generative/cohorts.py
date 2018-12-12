@@ -64,6 +64,17 @@ class Cohort(object):
             else:
                 return self._container._palm.MAP
 
+    @property
+    def _DAP(self):
+        """ The palm age in days after planting (day). """
+        if self._container is None:
+            return 0
+        else:
+            if self._container._palm is None:
+                return 0
+            else:
+                return self._container._palm.DAP
+
 #~~~~~~~~~~~~~~~~
 
     @property
@@ -126,13 +137,6 @@ class Cohort(object):
             return 0
 
 #~~~~~~~~~~~~~~~~
-
-    @property
-    def potential_mass(self):
-        """ The potential mass (kg_DM). """
-
-        # TEMP
-        return 1 + (1/12)*self._MAP
 
     @property
     def mass(self):
@@ -225,12 +229,26 @@ class Indeterminate(Cohort):
             unit: 'days'
             info: 'The number of days until sex differentiation.'
             source: 'Calibration - initially based on Adam et al., see fig 3.'
-
         abortion_fraction:
             value: 0
             unit: '1/day'
             info: 'Monthly aborted fraction before (!) sex differentiation.'
             source: 'Estimated to be insignificantly small - note, not mentioned in Adam et al. 2011.'
+        potential_mass_a:
+            value: 5
+            unit: ''
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
+        potential_mass_b:
+            value: 4
+            unit: ''
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
+        potential_mass_x0:
+            value: 2.3
+            unit: ''
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
         """)
 
     _prefix = 'indeterminate'
@@ -261,6 +279,22 @@ class Indeterminate(Cohort):
         self._female_fraction = 0.9
 
     @property
+    def potential_mass(self):
+        """ The potential mass (kg_DM). """
+
+        a = self.parameters['potential_mass_a']['value']
+        b = self.parameters['potential_mass_b']['value']
+        x0 = self.parameters['potential_mass_x0']['value']
+
+        x = self._DAP/365
+
+        x_ = x - x0
+
+        res  = a* x_ * (1/(1+(x_/b)))
+
+        return res
+
+    @property
     def should_differentiate(self):
         """ Should the indeterminate differentiate? (bool). """
         return self.age >= self.t_differentiation
@@ -286,7 +320,8 @@ class Indeterminate(Cohort):
         Conceptually converts the indeterminate to a male inflorescence.
         """
 
-        cohort = Male(self._container)
+        cohort = Male(self._container,
+                        potential_mass=self.potential_mass)
 
         cohort.stalk = self.stalk.copy()
         cohort.stalk._cohort = cohort
@@ -308,7 +343,8 @@ class Indeterminate(Cohort):
         Conceptually converts the indeterminate to a female inflorescence.
         """
 
-        cohort = Female(self._container)
+        cohort = Female(self._container,
+                        potential_mass=self.potential_mass)
 
         # Pass on cohort mean organ state/components
         cohort.stalk = self.stalk.copy()
@@ -415,19 +451,20 @@ class Female(Cohort):
             """)
 
     sex = 'female'
-    def __init__(self,container=None):
+    def __init__(self,container=None,potential_mass=0):
 
         self._container = container
+
+
+        # state
+        self.multiplicity = 1
+        self.potential_mass = potential_mass
 
         self.stalk = Stalk(self)
         self.components = [self.stalk]
 
-        # state
-        self.multiplicity = 1
-
         # in days after frond initiation
         self.age = 0
-
         self.has_flowered = False
 
         # rate
@@ -583,8 +620,9 @@ class Female(Cohort):
     @property
     def mesocarp_oil_content(self):
         """ Mesocarp oil content (DM/DM). """
-        if self.has_flowered:
-            return self.mesocarp_oil.mass/self.mass
+        mass = self.mass
+        if self.has_flowered and mass > 0:
+            return self.mesocarp_oil.mass/mass
         else:
             return 0
 
@@ -604,13 +642,10 @@ class Male(Cohort):
 
     sex = 'male'
 
-    def __init__(self, container=None):
+    def __init__(self, container=None, potential_mass = 0):
 
         self._container = container
 
-        # components
-        self.stalk = Stalk(self)
-        self.components = [self.stalk]
 
         # state
 
@@ -618,11 +653,15 @@ class Male(Cohort):
         # upon sex determination via the associated indeterminate cohort
         # see "Indeterminate.to_male"
 
+        self.potential_mass = potential_mass
         self.multiplicity = 1
+
+        # components
+        self.stalk = Stalk(self)
+        self.components = [self.stalk]
 
         # in days after frond initiation
         self.age = 0
-
         self.has_flowered = False
 
         self.relative_sink_strength = 0
