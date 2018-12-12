@@ -2,7 +2,16 @@
 History
 =======
 
+2.4.0a (2018-12-12)
+-------------------
 
+**Improvements**
+- Support for daily time-steps of integration
+- Improved the calibration of potential
+	- trunk mass
+	- root mass
+	- bunch mass
+	- female fraction
 
 2.3.4a (2018-11-13)
 -------------------
