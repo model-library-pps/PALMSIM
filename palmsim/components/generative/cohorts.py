@@ -131,10 +131,11 @@ class Cohort(object):
         After Combres et al., 2013.
         """
         PSS = self.potential_sink_strength
+
         if PSS > 0:
             return self.assim_growth_organ/PSS
         else:
-            return 0
+            return 1
 
 #~~~~~~~~~~~~~~~~
 
@@ -161,7 +162,6 @@ class Cohort(object):
         return sum([x.maintenance_requirement for x in self.components])
 
 #~~~~~~~~~~~~~~~~
-
     def update(self,dt=1):
         """ Update the cohort by dt days. """
         self._update(dt=dt)
@@ -420,13 +420,13 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         water_stress_bunch_failure_increase:
-            value: .8
+            value: 1.
             unit: '1'
             info: 'The increase in bunch failure given an increase in water stress (coeff. of proportionality).'
             source: 'Calibration:: less sensitive than sex ratio and bunch failure.'
 
         water_stress_bunch_failure_threshold:
-            value: .6
+            value: .95
             unit: '1'
             info: 'Moisture content below which bunch failure response sets in.'
             source: 'Calibration:: less sensitive than sex ratio and infloresence abortion.'

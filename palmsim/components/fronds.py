@@ -12,6 +12,8 @@ from .constants import DEFAULT_PLANTING_DENSITY
 
 import numpy as np
 
+from math import sqrt, exp
+
 @add_dumps
 class Fronds(object):
     ''' Models fronds.
@@ -98,7 +100,7 @@ class Fronds(object):
         uncertainty: 10%
 
     LUE:
-        value: 4.2
+        value: 3.8
         unit: 'g_CH2O/MJ'
         info: 'The light use efficiency.'
         source: 'Based on a more detailed hourly light-response
@@ -191,6 +193,22 @@ class Fronds(object):
         info: 'The potential growth rate'
         source: 'Based on Corley et al., 1971.'
         uncertainty: 5%
+
+    asymptotic_photosynthesis_rate:
+        value: 600
+        unit: 'ug_CO2/m2/s'
+        info: 'Co-determines the light response (g CH2O/m2/s) curve, the maximum value.'
+        source: 'Gerritsma, W., 1988. 
+                Light interception, leaf photosynthesis
+                and sink-source relations in Oil Palm'
+
+    initial_light_efficiency:
+        value: 9
+        unit: 'ug_CO2/J'
+        info: 'Co-determines the light response (g CH2O/MJ) curve, the slope.'
+        source: 'Gerritsma, W., 1988. 
+                Light interception, leaf photosynthesis
+                and sink-source relations in Oil Palm'
 
     ''')
 
@@ -602,7 +620,7 @@ class Fronds(object):
     #~~~~~~~~~~~~
 
     @property
-    def assim_produced(self):
+    def assim_produced2(self):
         ''' Assimilates produced (kg_CH2O/day/ha). '''
 
         # g_CH2O/MJ -> kg_CH2O/GJ
@@ -616,9 +634,347 @@ class Fronds(object):
         return rT * LUE * intercepted_PAR
 
     @property
+    def assim_produced(self):
+        ''' Assimilates produced (kg_CH2O/day/ha). '''
+
+        rT = self._relative_transpiration_rate
+
+        return rT*self.total_gross_assimilation
+
+    @property
     def LUE(self):
         ''' The light-use efficiency (g_CH2O/MJ). '''
         return self.parameters['LUE']['value']
+
+    @property
+    def LUE2(self):
+        ''' The light-use efficiency (g_CH2O/MJ). '''
+
+        # the factor 0.1 comes from conversion:
+        # Unit GA: kg/ha/day -> 1000 g/ha/day
+        # Unit PAR MJ/m2/day -> 10000 MJ/ha/day
+        # -> GA/PAR in g/MJ = 1000/10000 * GA [kg/ha/day]/PAR[MJ/m2/day]
+
+        return 0.1*self.total_gross_assimilation/self._PAR
+
+    @property
+    def total_gross_assimilation(self):
+        """ (kg_CH2O/ha/day) """
+
+        return self.calc_total_gross_assimilation()
+
+    def calc_light_response(self,I):    
+        """
+        Calculates a photosynthesis rate (ug_CH2O/m2/s).
+
+        Parameters
+        ----------
+        I: float, light (PAR) intensity (J/m2/s)
+        Fm: float, asymptotic photosynthesis rate (ug_CO2/m2/s)
+        Eff: float, initial light efficiency (ug_CO2/J)
+
+        Returns
+        -------
+        photosynthesis rate (ug_CH2O/m2/s)
+
+        References
+        ----------
+            Goudriaan, J. and van Laar, H.H, 1994.
+            Modelling Potential Crop Growth Processes
+            Textbook with exercises
+
+        """
+
+        Fm = self.parameters['asymptotic_photosynthesis_rate']['value']
+        Eff = self.parameters['initial_light_efficiency']['value']
+        
+        # molecular mass ratio
+        c = 30/44 # CH2O : CO2
+        
+        return c * Fm * (1 - exp(-Eff*I/Fm))
+
+    def _calc_fraction_diffuse(self, hour=12):
+
+        parent = self._palm
+
+        if parent is None:
+            return self._fraction_diffuse_
+        else:
+            return parent.weather.calc_fraction_diffuse(hour=12)
+
+    def _calc_sine_solar_height(self, hour):
+
+        parent = self._palm
+
+        if parent is None:
+            return self._sine_solar_height_
+        else:
+            return parent.weather.calc_sine_solar_height(hour)
+
+    def _calc_PAR(self, hour):
+
+        parent = self._palm
+
+        if parent is None:
+            return self._light_intensity_
+        else:
+            return parent.weather.calc_PAR(hour)
+
+    @property
+    def _hour_of_dawn(self):
+
+        parent = self._palm
+
+        if parent is None:
+            return self._hour_of_dawn_
+        else:
+            return parent.weather.hour_of_dawn
+
+    @property
+    def _hour_of_dusk(self):
+
+        parent = self._palm
+
+        if parent is None:
+            return self._hour_of_dusk_
+        else:
+            return parent.weather.hour_of_dusk
+
+    def calc_total_gross_assimilation(self):
+        """ Calculates the daily total gross assimilation rate (kg_CH2O/ha/day).
+        
+        Note, should be of the order 100--500 kg/ha/day.
+        """
+        
+        h0 = self._hour_of_dawn
+        h1 = self._hour_of_dusk
+
+        daylength = h1 - h0
+
+        assert daylength >= 0
+
+        # the time-step of integration (hour)
+        # gaussian weights
+        xgs = [0.047, 0.231, 0.5, 0.769, 0.953]
+        wgs = [0.118,0.239,0.284,0.239,0.12]
+
+        # kg_CH2O/ha/day
+        total = 0
+
+        for xg,wg in zip(xgs,wgs):
+
+            hour = h0 + xg*daylength
+
+            rate = self.calc_gross_assimilation(hour=hour)
+
+            dtotal = 3600 * 10**-9 * 10**4 * rate * wg * daylength
+
+            total += dtotal
+
+        return total
+
+    def calc_gross_assimilation(self, hour=12, SCP=0.2, KDF=0.33, verbose=False):
+        """ Calculates the gross assimilation rate (ug_CH2O/m2/s).
+
+        After the SUCROS97 implementation.
+
+        Determined via a weighted sum (gaussian integral)
+        of the photosynthesis rate
+        --via the light response curve--
+        at different heights in the canopy.
+
+        Simpliying assumptions:
+        - Light intensity and flux described by an exponential light-extinction curve
+        - The leaves have random angles
+
+        Parameters
+        ----------
+        I: photo-syntetically active radiation (irridiance) (J/m2/s)
+        LAI: leaf area index (m2 leaf/m2 soil)
+        fDF: fraction diffuse light (1)
+        SCP: Scattering coefficient of leaves for PAR; fraction un-absorbed PAR (1)
+        KDF: Extinction coefficient diffuse flux leaves (1)
+        SINB: Sine of the light-angle b (1)
+
+        Reference
+        ---------
+        Explanation:
+            Goudriaan, J. and van Laar, H.H, 1994.
+            Modelling Potential Crop Growth Processes
+            Textbook with exercises
+        SUCROS code:
+            Van Laar, H.H and Goudriaan, J. and Van Keulen, H., 1994.
+            SUCROS97: Simulation of crop growth for
+            potential and water-limited production situations
+
+        """
+
+        LAI = self.leaf_area_index 
+
+        SINB = self._calc_sine_solar_height(hour)
+
+        fDF = self._calc_fraction_diffuse(hour)
+
+        I = self._calc_PAR(hour)
+
+        # the intensity of the portion of diffuse light (J/m2/s)
+        PARDF = I*fDF
+
+        # the intensity of the portion of direct light (J/m2/s) 
+        PARDR = I*(1-fDF)
+
+        # gaussian weights
+        xgs = [0.047,0.231,0.5,0.769,0.953]
+        wgs = [0.118,0.239,0.284,0.239,0.12]
+
+        # Goal here is to estimate how the light intensity
+        # decreases throughout the (uniform) canopy.
+        # It turns out that we can best assume the light intensity
+        # decreases exponentially the more canopy is above ones head.
+
+        # We start by considering
+        # SQV: a light extinction coeff for horizontal opague leaves ~ .9
+        SQV = sqrt(1-SCP)
+        
+        # from which we derive
+        
+        # REFH: a light reflection coeff for horizontal opaque leaves ~.05
+        # REFS: a light reflection coeff for spherical opaque leaves ~.05
+        REFH = (1-SQV)/(1+SQV)
+        REFS = REFH*2/(1+2*SINB)
+
+        # next we derive a 
+        # CLUSTF: cluster coeff ~.4
+        # to try and take into account that leaves may be clustered i.e.
+        # less extinction for the same amount of leaves
+        CLUSTF = KDF / (0.8*SQV)
+
+        if verbose: print('CLUSTF',CLUSTF)
+        
+        # this cluster coeff is used to estimate the final
+        # KBL: extinction coeff spherical black leaves ~.4
+        # KDRT: extinction coeff spherical 'opaque' leaves ~.3
+        # These 'opaque leaves' are our model leaves
+        # for which we take into account first order reflection/transmission
+        # in the exponential light decrease.
+        KBL = (0.5/SINB) * CLUSTF
+        KDRT = KBL * SQV
+
+        # KBL is used to estimate the direct light intensity
+        # at a certain depth.
+        # KDRT is used to estimate the total light intensity ''
+        # By comparing the two light intensities we also estimate
+        # the diffuse light intensity at a certain depth,
+        # which is the difference.
+
+        # this will hold our result, the gross assimilation (ug_CH20/ha/s)
+        AGROS = 0
+
+        if verbose: print('SCP',SCP)
+        if verbose: print('REFH',REFH)
+        if verbose: print('REFS',REFS)
+        if verbose: print('KDF',KDF)
+        if verbose: print('KDRT',KDRT)
+        if verbose: print('KBL',KBL)
+
+        # now let us integrate our light response over the canopy depth
+        # using a Gaussian quadrature
+        for xg,wg in zip(xgs,wgs):
+
+            # leaf area above the point the evaluate the light response
+            # eg .1
+            L = xg*LAI
+
+            if verbose: print('--------------')
+            if verbose: print('L',L)
+
+            # the absorbed fluxes - our exponential decrease
+            
+            # the flux of diffuse light
+            VISDF = (1-REFH)*PARDF*KDF*exp(-KDF*L)
+
+            # the total flux of absorbed direct light - involves first order scattering
+            VIST = (1-REFS)*PARDR*KDRT*exp(-KDRT*L)
+
+            # the flux of direct light directly hitting any leaves
+            VISD = (1-SCP)*PARDR*KBL*exp(-KBL*L)
+
+            if verbose: print('VISDF', VISDF)
+            if verbose: print('VISTOT', VIST)
+            if verbose: print('VISD', VISD)
+
+            # absorbed flux for shaded leaves:
+            # diffuse light originating from the incoming diffuse light plus
+            # diffuse light originating from the scattered direct light.
+            # This estimate of the scattered direct light is arguable the most
+            # difficult part to wrap your mind around.
+            VISSHD = VISDF + (VIST - VISD)
+
+            # the assimilation rate of the shaded leaves at depth L
+            ASHD = self.calc_light_response(VISSHD)
+
+            if verbose: print('VISSHD',VISSHD)
+            if verbose: print('\tASHD',ASHD)
+            if verbose: print('\tLUESH',ASHD/VISSHD)
+
+            # the light use efficiency of the shaded leaves
+            LUESHD = ASHD/VISSHD
+
+            # absorbed flux of direct light: the non-scattering fraction
+            # of the light, adjusted for the sun angle (lower angle -> less intense)
+            VISPP = (1-SCP) * PARDR / SINB
+
+            # effective assimilation sunlight
+            VISSUN = VISSHD + VISPP
+            if verbose: print('\tVISSUN',VISSUN)
+
+            # the assimilation rate of the sun-lit leaves at depth L
+            ASUN = 0
+
+            # now, since our leaves are randomly oriented
+            # we evaluate the effective assimilation rate
+            # for the directly lit leaves by effectively
+            # averaging over
+            # the distribution of absorbed direct-light 
+            for xg_,wg_ in zip(xgs,wgs):
+
+                VISSUN = VISSHD + VISPP*xg_
+
+                AS_ = self.calc_light_response(VISSUN)
+
+                ASUN += AS_*wg_
+
+            if verbose: print('\tASUN',ASUN)
+            if verbose: print('\tLUESUN',ASUN/VISSUN)
+
+            # the light use efficiency of the sun-lit leaves
+            LUESUN = ASUN/VISSUN
+
+            # the fraction of sun-lit leaves
+            FSLLA = CLUSTF * exp(-KBL*L)
+
+            if verbose: print('FSLLA',FSLLA)
+            if verbose: print('\tELUE',(VISSHD*LUESHD + VISD*LUESUN)/(VISSHD+VISD))
+
+            # the total assimilation rate (ug_CH20/m2/s) at depth L
+            AGL = FSLLA * ASUN + (1-FSLLA) * ASHD
+
+            if verbose: print('AGL',AGL)
+
+            # we add the result to the accumulator
+            # the assimilation rate canopy average (ug_CH20/m2/s)
+            AGROS += wg*AGL
+
+        if verbose: print('AGROS',AGROS)
+
+        # so far we have not been multiplying each layers
+        # photosynthesis by the representative amount of leaf area
+        # in the layer ie we did
+        # AGROS += wg*AGL instead of AGROS += LAI*wg*AGL
+        # accordingly, sticking to the style of the SUCROS implementation
+        # we multiply by the LAI, in the end.
+
+        return AGROS*LAI
 
     @property
     def intercepted_PAR(self):

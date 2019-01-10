@@ -168,6 +168,7 @@ class PalmField():
                     year_of_planting = 2017,
                     month_of_planting = 1,
                     day_of_planting =1,
+                    latitude = 0,
                     dt = 1):
 
         # simulation run-time is kept by instances of this class
@@ -177,6 +178,8 @@ class PalmField():
         self.day_of_planting = day_of_planting
 
         self.dt = dt
+
+        self.latitude = latitude
 
         self.time = datetime(year_of_planting,
                                 month_of_planting,
@@ -213,16 +216,24 @@ class PalmField():
         self._units = {}
 
     @property
+    def DOY(self):
+        ''' Day of the year (1--366). '''
+        return self.time.now().timetuple().tm_yday
+
+    @property
     def DAP(self):
+        """ Days after planting (days). """
         time_passed = self.time - self.time_of_planting
         return time_passed.days
 
     @property
     def YAP(self):
+        """ Years after planting (years). """
         return self.year - self.year_of_planting
 
     @property
     def MAP(self):
+        """ Months after planting (months). """
         month = self.month - self.month_of_planting
         YAP = self.YAP
 
@@ -230,24 +241,26 @@ class PalmField():
 
     @property
     def _days_in_month(self):
+        """ Number of days in the month. """
 
         year = self.year
         month = self.month
 
-        return calendar.monthrange(2000, 1)[1]
+        return calendar.monthrange(year, month)[1]
 
     @property
     def year(self):
-        ''' The current year. '''
+        ''' Year. '''
         return self.time.year
 
     @property
     def month(self):
-        ''' The current month. '''
+        ''' Month of the year (1--12). '''
         return self.time.month
 
     @property
     def day(self):
+        ''' Day of the month (1--31). '''
         return self.time.day
 
     @property
@@ -276,6 +289,8 @@ class PalmField():
         _dt = timedelta(days=dt)
 
         self.time += _dt
+
+        self.weather.update()
 
         self.soil.update()
         self.assimilates.update()

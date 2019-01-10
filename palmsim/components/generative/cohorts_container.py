@@ -140,7 +140,13 @@ class Cohorts(object):
 
         After Combres et al., 2013.
         """
-        return 1
+
+        if self.potential_sink_strength == 0:
+            res = 1
+        else:
+            res = self.assim_growth/self.potential_sink_strength
+
+        return res
 
     @property
     def stress_index(self):
@@ -162,7 +168,7 @@ class Cohorts(object):
 
             return 1
         else:
-            return self._palm.soil.moisture_content
+            return self.Ic #self._palm.soil.moisture_content
 
     @property
     def _DAP(self):
@@ -266,7 +272,10 @@ class Cohorts(object):
 
     def set_relative_sink_strengths(self):
         """ Sets the relative sink strengh of the cohorts. """
-        for cohort in self.cohorts:
+
+        cohorts = self.cohorts
+
+        for cohort in cohorts:
             cohort.set_relative_sink_strength()
 
     def update_existing_cohorts(self,dt):
@@ -316,41 +325,33 @@ class Cohorts(object):
     # Cohort Sets
     ##############
     @property
-    def bunches(self):
-        return [x for x in self.females if x.is_harvestible]
+    def _bunches(self):
+        return [x for x in self._females if x.is_harvestible]
 
     @property
-    def females(self):
+    def _females(self):
         """ Female cohorts. """
         return [x for x in self.cohorts if  x.sex == 'female']
 
     @property
-    def males(self):
+    def _males(self):
         """ Male cohorts. """
         return [x for x in self.cohorts if  x.sex == 'male']
 
     @property
-    def indeterminates(self):
+    def _indeterminates(self):
         """ Indeterminate cohorts. """
         return [x for x in self.cohorts if  x.sex == 'indeterminate']
 
     ###############
     # Bunch details
     ###############
-    @property
-    def mesocarp_oil_content(self):
-        bunch_count = self.bunch_count
-        if bunch_count > 0:
-            res = sum([x.mesocarp_oil_content for x in self.bunches])
-            return res/bunch_count
-        else:
-            return 0
 
     @property
     def CPO_production(self):
         """ (kg/ha/day). """
         res = 0
-        for bunch in self.bunches:
+        for bunch in self._bunches:
             res += bunch.multiplicity*bunch.mesocarp_oil.mass
 
         return res/self._dt
@@ -359,7 +360,7 @@ class Cohorts(object):
     def PKO_production(self):
         """ (kg/ha/day). """
         res = 0
-        for bunch in self.bunches:
+        for bunch in self._bunches:
             res += bunch.multiplicity*bunch.kernel.mass
 
         return res/self._dt
@@ -368,7 +369,7 @@ class Cohorts(object):
     def EFB_production(self):
         """ (kg/ha/day). """
         res = 0
-        for bunch in self.bunches:
+        for bunch in self._bunches:
             mass = bunch.stalk.mass + bunch.mesocarp_fibers.mass
             res += bunch.multiplicity*mass
 
@@ -394,7 +395,7 @@ class Cohorts(object):
         """ (1/ha/day). """
 
         # harvestible number of bunches --- every dt days
-        return sum([x.multiplicity for x in self.bunches])/self._dt
+        return sum([x.multiplicity for x in self._bunches])/self._dt
 
     @property
     def bunch_weight(self):
@@ -405,17 +406,17 @@ class Cohorts(object):
             N = self.bunch_count
 
             # harvestible mass --- every dt days
-            total_mass = sum([x.mass*x.multiplicity for x in self.bunches])
+            total_mass = sum([x.mass*x.multiplicity for x in self._bunches])
 
             if N > 0:
                 return total_mass/(N*self._dt)
             else:
                 return 0
 
-    @property
-    def bunch_weight_fresh(self):
-        ratio = self.parameters['bunch_FM_to_DM_ratio']['value']
-        return ratio*self.bunch_weight
+    # @property
+    # def bunch_weight_fresh(self):
+    #     ratio = self.parameters['bunch_FM_to_DM_ratio']['value']
+    #     return ratio*self.bunch_weight
 
     ##################
     # Abortion details
@@ -424,10 +425,10 @@ class Cohorts(object):
     @property
     def inflorescence_abortion_fraction(self):
         """ The mean of the non-zero values for the female cohorts (1). """
-
-        N = len(self.females)
+ 
+        N = len(self._females)
         if N > 0:
-            values = [x.inflorescence_abortion_fraction for x in self.females]
+            values = [x.inflorescence_abortion_fraction for x in self._females]
             nzvalues = [x for x in values if x > 0]
             M = len(nzvalues)
             if M > 0:
@@ -441,9 +442,9 @@ class Cohorts(object):
     def bunch_failure_fraction(self):
         """ The mean of the non-zero values for the female cohorts (1). """
 
-        N = len(self.females)
+        N = len(self._females)
         if N > 0:
-            values = [x.bunch_failure_fraction for x in self.females]
+            values = [x.bunch_failure_fraction for x in self._females]
             nzvalues = [x for x in values if x > 0]
             M = len(nzvalues)
             if M > 0:
@@ -456,20 +457,21 @@ class Cohorts(object):
     ######################
     # Assimilation details
     ######################
-    @property
-    def assim_growth_females(self):
-        """ Assimilates for growth (kg_CH2O/cohort/day). """
-        return sum([x.assim_growth_cohort for x in self.females])
 
-    @property
-    def assim_growth_males(self):
-        """ Assimilates for growth (kg_CH2O/cohort/day). """
-        return sum([x.assim_growth_cohort for x in self.males])
+    # @property
+    # def assim_growth_females(self):
+    #     """ Assimilates for growth (kg_CH2O/cohort/day). """
+    #     return sum([x.assim_growth_cohort for x in self._females])
 
-    @property
-    def assim_growth_indeterminates(self):
-        """ Assimilates for growth (kg_CH2O/cohort/day). """
-        return sum([x.assim_growth_cohort for x in self.indeterminates])
+    # @property
+    # def assim_growth_males(self):
+    #     """ Assimilates for growth (kg_CH2O/cohort/day). """
+    #     return sum([x.assim_growth_cohort for x in self._males])
+
+    # @property
+    # def assim_growth_indeterminates(self):
+    #     """ Assimilates for growth (kg_CH2O/cohort/day). """
+    #     return sum([x.assim_growth_cohort for x in self._indeterminates])
 
     #################
     # Fraction female
@@ -500,7 +502,7 @@ class Cohorts(object):
 
         minimum = self.parameters['female_fraction_minimum']['value']
 
-        return min(max(minimum,modifier*self._female_fraction),1)
+        return self._female_fraction #min(max(minimum,modifier*self._female_fraction),1)
 
     #############
     # New cohorts
