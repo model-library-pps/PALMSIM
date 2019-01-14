@@ -5,6 +5,8 @@ from .bunch_components import Stalk, MesocarpOil, MesocarpFibers, Kernels
 
 import yaml
 
+from math import exp
+
 @add_dumps
 class Cohort(object):
     """ The general model for inflorescence cohorts.
@@ -225,9 +227,10 @@ class Indeterminate(Cohort):
     parameters = yaml.load("""
 
         t_differentiation:
-            value: 210
-            unit: 'days'
-            info: 'The number of days until sex differentiation.'
+            value: 0.175
+            unit: '1'
+            info: 'The time of sex differentiation relative to
+                    the duration of the total female phenological cycle.'
             source: 'Calibration - initially based on Adam et al., see fig 3.'
         abortion_fraction:
             value: 0
@@ -235,17 +238,17 @@ class Indeterminate(Cohort):
             info: 'Monthly aborted fraction before (!) sex differentiation.'
             source: 'Estimated to be insignificantly small - note, not mentioned in Adam et al. 2011.'
         potential_mass_a:
-            value: 5
-            unit: ''
+            value: 17
+            unit: 'kg_DM'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
         potential_mass_b:
-            value: 4
-            unit: ''
+            value: .2
+            unit: '1/year'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
         potential_mass_x0:
-            value: 2.3
+            value: 2.0
             unit: ''
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
@@ -259,11 +262,12 @@ class Indeterminate(Cohort):
         # the container keeps track of the cohorts
         self._container = container
 
-        # components - here only a stalk
-        self.stalk = Stalk(self)
-
         # state
         self.multiplicity = 1
+        self.t_maturity =  self._t_maturity
+        
+        # components - here only a stalk
+        self.stalk = Stalk(self,t_maturity=self.t_maturity)
 
         # in days after frond initiation
         self.age = 0
@@ -271,12 +275,24 @@ class Indeterminate(Cohort):
         # rate
         self.relative_sink_strength = 0
 
+        # for prototyping only
+        self._t_maturity_ = 1200
+        self._female_fraction = 0.9
+
         # param
         self._abortion_fraction = self.parameters['abortion_fraction']['value']
-        self.t_differentiation = self.parameters['t_differentiation']['value']
+        self.t_differentiation = self.t_maturity*self.parameters['t_differentiation']['value']
 
-        # only used in testing
-        self._female_fraction = 0.9
+    @property
+    def _t_maturity(self):
+        """ Duration of the female phenological cycle from inititation to harvest (days) . """
+    
+        parent = self._container
+    
+        if parent is None:
+            return self._t_maturity_
+        else:
+            return parent.t_maturity
 
     @property
     def potential_mass(self):
@@ -290,7 +306,7 @@ class Indeterminate(Cohort):
 
         x_ = x - x0
 
-        res  = a* x_ * (1/(1+(x_/b)))
+        res  = a*(1 - exp(-b*x_))
 
         return res
 
@@ -321,7 +337,8 @@ class Indeterminate(Cohort):
         """
 
         cohort = Male(self._container,
-                        potential_mass=self.potential_mass)
+                        potential_mass=self.potential_mass,
+                        t_maturity=self.t_maturity)
 
         cohort.stalk = self.stalk.copy()
         cohort.stalk._cohort = cohort
@@ -344,7 +361,8 @@ class Indeterminate(Cohort):
         """
 
         cohort = Female(self._container,
-                        potential_mass=self.potential_mass)
+                        potential_mass=self.potential_mass,
+                        t_maturity=self.t_maturity)
 
         # Pass on cohort mean organ state/components
         cohort.stalk = self.stalk.copy()
@@ -377,22 +395,34 @@ class Female(Cohort):
 
     parameters = yaml.load("""
 
-        inflorescence_abortion_fraction:
-            value: 0.0016
-            unit: '1/day'
-            info: 'Base-line aborted fraction during inflorescence abortion.'
-            source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
-
         inflorescence_abortion_t0:
-            value: -90
-            unit: 'day'
-            info: 'The start of the period in which inflorescence abortion occurs relative to the time of anthesis.'
+            value: .75
+            unit: '1'
+            info: 'The point in the phenological cycle at which inflorescence abortion starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         inflorescence_abortion_dt:
-            value: 30
+            value: 0.03
             unit: 'day'
-            info: 'The duration of the period in which inflorescence abortion occurs.'
+            info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
+            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
+
+        bunch_failure_t0:
+            value: .9
+            unit: 'day'
+            info: 'The point in the phenological cycle at which bunch failure starts.'
+            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
+
+        bunch_failure_dt:
+            value: 0.03
+            unit: 'day'
+            info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
+            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
+
+        t_anthesis:
+            value: .825
+            unit: '1'
+            info: 'The point in the phenological cycle at which anthesis takes place.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_fraction:
@@ -401,32 +431,20 @@ class Female(Cohort):
             info: 'Base-line aborted fraction during bunch abortion.'
             source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
 
-        bunch_failure_t0:
-            value: 60
-            unit: 'day'
-            info: 'The start of the period in which bunch failure occurs relative to the time of anthesis.'
-            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
-        bunch_failure_dt:
-            value: 30
-            unit: 'day'
-            info: 'The duration of the period in which bunch failure occurs.'
-            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
-        t_anthesis:
-            value: 990
-            unit: 'day'
-            info: 'The age at which the anthesis takes place in terms of months after frond initiation.'
-            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
+        inflorescence_abortion_fraction:
+            value: 0.0016
+            unit: '1/day'
+            info: 'Base-line aborted fraction during inflorescence abortion.'
+            source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
 
         water_stress_bunch_failure_increase:
-            value: 1.
+            value: 1.4
             unit: '1'
             info: 'The increase in bunch failure given an increase in water stress (coeff. of proportionality).'
             source: 'Calibration:: less sensitive than sex ratio and bunch failure.'
 
         water_stress_bunch_failure_threshold:
-            value: .95
+            value: 1.
             unit: '1'
             info: 'Moisture content below which bunch failure response sets in.'
             source: 'Calibration:: less sensitive than sex ratio and infloresence abortion.'
@@ -438,23 +456,19 @@ class Female(Cohort):
             source: 'Calibration:: less sensitive than sex ratio, more sensitive than bunch failure.'
 
         water_stress_inflorescence_abortion_threshold:
-            value: .4
+            value: 1.
             unit: '1'
             info: 'Moisture content below which inflorescence abortion response sets in.'
             source: 'Calibration:: less sensitive than sex ratio, more sensitive than bunch failure.'
 
-        t_maturity:
-            value: 1200
-            unit: 'day'
-            info: 'The age at which the fruit is harvestible.'
-            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
             """)
 
     sex = 'female'
-    def __init__(self,container=None,potential_mass=0):
+    def __init__(self,container=None,
+                        potential_mass=0,
+                        t_maturity=1200):
 
         self._container = container
-
 
         # state
         self.multiplicity = 1
@@ -466,24 +480,31 @@ class Female(Cohort):
         # in days after frond initiation
         self.age = 0
         self.has_flowered = False
+        self.t_maturity = t_maturity
 
         # rate
         self.relative_sink_strength = 0
 
-        # param
-
-        self.t_anthesis = self.parameters['t_anthesis']['value']
-        self.t_maturity = self.parameters['t_maturity']['value']
-
-        self._inflorescence_abortion_t0 = self.parameters['inflorescence_abortion_t0']['value']
-        self._inflorescence_abortion_dt = self.parameters['inflorescence_abortion_dt']['value']
-
-        self._bunch_failure_t0 = self.parameters['bunch_failure_t0']['value']
-        self._bunch_failure_dt = self.parameters['bunch_failure_dt']['value']
+        # parametrization
+        self.set_event_timings()
 
         # proto-typical value
         self._water_deficit_ = 0
         self._soil_moisture_content_ = 1
+
+    def set_event_timings(self):
+
+        T = self.t_maturity
+
+        self.t_anthesis = T * self.parameters['t_anthesis']['value']
+
+        self.inflorescence_abortion_t0 = T * self.parameters['inflorescence_abortion_t0']['value']
+        self.inflorescence_abortion_dt = T * self.parameters['inflorescence_abortion_dt']['value']
+        self.inflorescence_abortion_t1 = self.inflorescence_abortion_t0 + self.inflorescence_abortion_dt
+
+        self.bunch_failure_t0 = T * self.parameters['bunch_failure_t0']['value']
+        self.bunch_failure_dt = T * self.parameters['bunch_failure_dt']['value']
+        self.bunch_failure_t1 = self.bunch_failure_t0 + self.bunch_failure_dt
 
 #~~~~~~~~~~~~~~~~
 
@@ -523,11 +544,10 @@ class Female(Cohort):
 
         """
 
-        t = self.age - self.t_anthesis
+        t = self.age
 
-        t0 = self._inflorescence_abortion_t0
-        dt = self._inflorescence_abortion_dt
-        t1 = t0 + dt
+        t0 = self.inflorescence_abortion_t0
+        t1 = self.inflorescence_abortion_t1
 
         if (t >= t0) and (t < t1):
             return self._inflorescence_abortion_fraction
@@ -543,9 +563,8 @@ class Female(Cohort):
 
         base = self.parameters['inflorescence_abortion_fraction']['value']
 
-        t0 = self._inflorescence_abortion_t0
-        dt = self._inflorescence_abortion_dt
-        t1 = t0 + dt
+        t0 = self.inflorescence_abortion_t0
+        t1 = self.inflorescence_abortion_t1
 
         timespan =  t1-t0
 
@@ -561,11 +580,10 @@ class Female(Cohort):
     @property
     def bunch_failure_fraction(self):
 
-        t = self.age - self.t_anthesis
+        t = self.age
 
-        t0 = self._bunch_failure_t0
-        dt = self._bunch_failure_dt
-        t1 = t0 + dt
+        t0 = self.bunch_failure_t0
+        t1 = self.bunch_failure_t1
 
         if (t >= t0) and (t < t1):
             return self._bunch_failure_fraction
@@ -577,9 +595,8 @@ class Female(Cohort):
 
         base = self.parameters['bunch_failure_fraction']['value']
 
-        t0 = self._bunch_failure_t0
-        dt = self._bunch_failure_dt
-        t1 = t0 + dt
+        t0 = self.bunch_failure_t0
+        t1 = self.bunch_failure_t1
 
         timespan = t1 - t0
 
@@ -593,13 +610,24 @@ class Female(Cohort):
         return (base + modifier)/timespan
 
     def set_fruit(self):
-        self.mesocarp_oil = MesocarpOil(self)
-        self.mesocarp_fibers = MesocarpFibers(self)
-        self.kernel = Kernels(self)
+
+        self.mesocarp_oil = MesocarpOil(self,
+                                        age=self.age,
+                                        t_maturity=self.t_maturity)
+
+        self.mesocarp_fibers = MesocarpFibers(self,
+                                        age=self.age,
+                                        t_maturity=self.t_maturity)
+
+        self.kernel = Kernels(self,
+                                age=self.age,
+                                t_maturity=self.t_maturity)
+        
         self.components = [self.stalk,
                             self.mesocarp_fibers,
                             self.mesocarp_oil,
                             self.kernel]
+
         self.has_flowered = True
 
     @property
@@ -633,16 +661,18 @@ class Male(Cohort):
     parameters = yaml.load("""
 
         t_anthesis:
-            value: 990
+            value: .825
             unit: 'day'
-            info: 'The age at which the anthesis takes place in terms of months after frond initiation.'
+            info: 'The point in the phenological cycle at which anthesis takes place.'
             source: 'Adam et al. 2011, see fig 3.'
 
             """)
 
     sex = 'male'
 
-    def __init__(self, container=None, potential_mass = 0):
+    def __init__(self, container=None,
+                        potential_mass=0,
+                        t_maturity=1200):
 
         self._container = container
 
@@ -664,14 +694,20 @@ class Male(Cohort):
         self.age = 0
         self.has_flowered = False
 
+        # of the female counter-part - used as a reference
+        self.t_maturity = t_maturity
+
         self.relative_sink_strength = 0
 
         # param
-        self.t_anthesis = self.parameters['t_anthesis']['value']
+        self.set_event_timings()
 
         # we do not model abortion of male inflorescences
         # and thus keep it at a value of zero.
         self._abortion_fraction = 0
+
+    def set_event_timings(self):
+        self.t_anthesis = self.t_maturity*self.parameters['t_anthesis']['value']
 
     @property
     def is_deletable(self):

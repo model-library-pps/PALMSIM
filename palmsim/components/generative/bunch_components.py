@@ -104,7 +104,10 @@ class BunchComponent(object):
 
     """)
 
-    def __init__(self, cohort = None, potential_mass = None):
+    def __init__(self, cohort=None,
+                        age = 0,
+                        potential_mass=None,
+                        t_maturity=1200):
         """ Initialization.
 
         Each bunch component is associated with a cohort
@@ -118,9 +121,14 @@ class BunchComponent(object):
         else:
             self.potential_mass = potential_mass
 
+        # timing of events relative to the time of maturity of a female inflorescence
+        self.t_maturity = t_maturity
+        t_growth_start = t_maturity*self.parameters['t_growth_start']['value']
+        t_growth_end = t_maturity*self.parameters['t_growth_end']['value']
+
         self._potential_growth_function = \
-            make_quadratic_function(self.parameters['t_growth_start']['value'],
-                                      self.parameters['t_growth_end']['value'],
+            make_quadratic_function(t_growth_start,
+                                    t_growth_end,
                                       self.potential_mass,
                                       )
 
@@ -128,7 +136,7 @@ class BunchComponent(object):
         self.mass = 0
 
         # in days
-        self.age = 0
+        self.age = age
 
         # the driving rate variable
         self.potential_sink_strength = self.get_potential_sink_strength()
@@ -256,8 +264,10 @@ class BunchComponent(object):
         # the constructor makes a new bunch component of the same type.
         constructor = type(self)
 
+        t_maturity = self.t_maturity
+
         # make sure to pass the potential mass which was set at inflorescence initiation
-        duplicate = constructor(potential_mass = self.potential_mass)
+        duplicate = constructor(potential_mass = self.potential_mass,t_maturity=t_maturity)
 
         # carry over state (of basic types e.g. float so straightforward to do so)
         duplicate.mass = self.mass
@@ -303,15 +313,15 @@ class Stalk(BunchComponent):
 
         t_growth_start:
             value: 0
-            unit: 'month'
-            info: 'The start of potential growth, in months after leaf initiation.'
+            unit: 'days'
+            info: 'The start of potential growth, relative to/ after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 33
-            unit: 'month'
-            info: 'The end of potential growth, in months after leaf initiation.'
+            value: .75
+            unit: 'days'
+            info: 'The end of potential growth, relative to/after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
@@ -346,14 +356,14 @@ class MesocarpFibers(BunchComponent):
             uncertainty: 5%
 
         t_growth_start:
-            value: 0
-            unit: 'month'
+            value: .825
+            unit: 'days'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 150
+            value: .95
             unit: 'days'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
@@ -388,14 +398,14 @@ class MesocarpOil(BunchComponent):
             uncertainty: 5%
 
         t_growth_start:
-            value: 90
+            value: .9
             unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 150
+            value: .95
             unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
@@ -432,14 +442,14 @@ class Kernels(BunchComponent):
             uncertainty: 5%
 
         t_growth_start:
-            value: 60
+            value: .875
             unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
 
         t_growth_end:
-            value: 180
+            value: .975
             unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'

@@ -7,6 +7,8 @@ from .cohorts import Indeterminate
 import yaml
 import numpy as np
 
+from math import exp
+
 @add_dumps
 class Cohorts(object):
     """ The interface between the palm and the cohorts.
@@ -19,17 +21,17 @@ class Cohorts(object):
 
     parameters = yaml.load("""
 
-        soil_moisture_specific_female_fraction_decrease:
-            value: 1.5
+        female_fraction_decrease_threshold:
+            value: 1.
             unit: '1'
-            info: 'Decrease of the female fraction per unit drop of soil moisture content past the threshold.'
+            info: 'The soil moisture content below which sex ratio response sets in.'
             source: 'Calibration.'
             uncertainty: 20%
 
-        female_fraction_decrease_threshold:
-            value: .8
+        soil_moisture_specific_female_fraction_decrease:
+            value: 1.2
             unit: '1'
-            info: 'The soil moisture content below which sex ratio response sets in.'
+            info: 'Decrease of the female fraction per unit drop of soil moisture content past the threshold.'
             source: 'Calibration.'
             uncertainty: 20%
 
@@ -39,7 +41,7 @@ class Cohorts(object):
         female_fraction_t0:
             value: 10
 
-        female_fraction_vasym:
+        female_fraction_asymptote:
             value: .3
 
         female_fraction_minimum:
@@ -50,13 +52,13 @@ class Cohorts(object):
             uncertainty: 20%
 
         bunch_FM_to_DM_ratio:
-            value: 2
+            value: 1.8
             unit: '1'
             info: 'The fresh to dry mass of a bunch.'
             source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
 
         onset_time:
-            value: 14
+            value: 20
             unit: 'month'
             info: 'The time of onset of inflorescence production that leads to actual harvestible bunches in terms of MAP.'
             source: 'Calibration -- hardly reported in the literature thus a contribution.'
@@ -66,6 +68,12 @@ class Cohorts(object):
             unit: '1/month'
             info: 'The steepness of the onset of inflorescence production -- the time derivative of the onset. I.e. .5 -> in one month the fraction of inflorescences growing goes up by 50%.'
             source: 'Calibration -- hardly reported in the literature thus a contribution.'
+
+        t_maturity:
+            value: 1080
+            unit: 'day'
+            info: 'The age at which the fruit is harvestible.'
+            source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         """
     )
@@ -127,6 +135,13 @@ class Cohorts(object):
         # pool of cohorts marked for deletion
         self.to_delete = []
 
+        self._bunches = []
+
+    @property
+    def t_maturity(self):
+
+        return self.parameters['t_maturity']['value']
+
     @property
     def _dt(self):
         if self._palm is None:
@@ -168,7 +183,7 @@ class Cohorts(object):
 
             return 1
         else:
-            return self.Ic #self._palm.soil.moisture_content
+            return self.stress_index #self._palm.soil.moisture_content
 
     @property
     def _DAP(self):
@@ -260,6 +275,11 @@ class Cohorts(object):
         #   - Female's past harvestible age
         #   - Empty cohorts (multiplicity ~= 0)
 
+        harvest = [x for x in self._females if x.is_harvestible]
+
+        if harvest:
+            self._bunches = [harvest[0]]
+
         self.to_delete = [x for x in self.cohorts if x.is_deletable]
 
         self.cohorts = [x for x in self.cohorts if not x.is_deletable]
@@ -325,7 +345,7 @@ class Cohorts(object):
     # Cohort Sets
     ##############
     @property
-    def _bunches(self):
+    def __bunches(self):
         return [x for x in self._females if x.is_harvestible]
 
     @property
@@ -484,7 +504,7 @@ class Cohorts(object):
 
         k = self.parameters['female_fraction_k']['value']
         t0 = self.parameters['female_fraction_t0']['value']
-        va = self.parameters['female_fraction_vasym']['value']
+        va = self.parameters['female_fraction_asymptote']['value']
 
         # a decreasing sigmoid
 
@@ -502,7 +522,7 @@ class Cohorts(object):
 
         minimum = self.parameters['female_fraction_minimum']['value']
 
-        return self._female_fraction #min(max(minimum,modifier*self._female_fraction),1)
+        return min(max(minimum,modifier*self._female_fraction),1)
 
     #############
     # New cohorts

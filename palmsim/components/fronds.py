@@ -152,7 +152,7 @@ class Fronds(object):
         uncertainty: 5%
 
     initiation_rate_a:
-        value: 23
+        value: 25
         unit: '1/palm/year'
         info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
         source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
@@ -179,7 +179,7 @@ class Fronds(object):
         uncertainty: 5%
 
     initiation_rate_max:
-        value: 42
+        value: 50
         unit: '1/year'
         info: 'The upper limit on the frond initiation rate.'
         source: 'Roughly based on Gerritsma, W. and Soebagyo, F.X., 1998.
