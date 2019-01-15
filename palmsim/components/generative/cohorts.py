@@ -126,19 +126,6 @@ class Cohort(object):
         else:
             return 0
 
-    @property
-    def Ic(self):
-        """ The so-called index of competition.
-
-        After Combres et al., 2013.
-        """
-        PSS = self.potential_sink_strength
-
-        if PSS > 0:
-            return self.assim_growth_organ/PSS
-        else:
-            return 1
-
 #~~~~~~~~~~~~~~~~
 
     @property
@@ -426,40 +413,40 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_fraction:
-            value: 0.0033
+            value: 0
             unit: '1/day'
             info: 'Base-line aborted fraction during bunch abortion.'
             source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
 
         inflorescence_abortion_fraction:
-            value: 0.0016
+            value: 0
             unit: '1/day'
             info: 'Base-line aborted fraction during inflorescence abortion.'
             source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
 
-        water_stress_bunch_failure_increase:
-            value: 1.4
+        stress_bunch_failure_increase:
+            value: 0.0432
             unit: '1'
-            info: 'The increase in bunch failure given an increase in water stress (coeff. of proportionality).'
-            source: 'Calibration:: less sensitive than sex ratio and bunch failure.'
+            info: 'The increase in bunch failure given an increase in stress (coeff. of proportionality).'
+            source: 'Calibration, less sensitive than sex ratio and bunch failure.'
 
-        water_stress_bunch_failure_threshold:
-            value: 1.
+        stress_bunch_failure_threshold:
+            value: 0.
             unit: '1'
-            info: 'Moisture content below which bunch failure response sets in.'
-            source: 'Calibration:: less sensitive than sex ratio and infloresence abortion.'
+            info: 'Stress index above which bunch failure response sets in.'
+            source: 'Calibration, less sensitive than sex ratio and infloresence abortion.'
 
-        water_stress_inflorescence_abortion_increase:
-            value: 1.0
+        stress_inflorescence_abortion_increase:
+            value: 0.031
             unit: '1'
-            info: 'The increase in inflorescence abortion given an increase in water stress (coeff. of proportionality).'
-            source: 'Calibration:: less sensitive than sex ratio, more sensitive than bunch failure.'
+            info: 'The increase in inflorescence abortion given an increase in stress (coeff. of proportionality).'
+            source: 'Calibration, less sensitive than sex ratio, more sensitive than bunch failure.'
 
-        water_stress_inflorescence_abortion_threshold:
-            value: 1.
+        stress_inflorescence_abortion_threshold:
+            value: 0.
             unit: '1'
-            info: 'Moisture content below which inflorescence abortion response sets in.'
-            source: 'Calibration:: less sensitive than sex ratio, more sensitive than bunch failure.'
+            info: 'Stress index above which inflorescence abortion response sets in.'
+            source: 'Calibration, less sensitive than sex ratio, more sensitive than bunch failure.'
 
             """)
 
@@ -489,8 +476,7 @@ class Female(Cohort):
         self.set_event_timings()
 
         # proto-typical value
-        self._water_deficit_ = 0
-        self._soil_moisture_content_ = 1
+        self._stress_index_ = 1
 
     def set_event_timings(self):
 
@@ -517,19 +503,12 @@ class Female(Cohort):
             self.set_fruit()
 
     @property
-    def _water_deficit(self):
+    def _stress_index(self):
+        """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
         if self._container is None:
-
-            return self._water_deficit_
+            return self._stress_index_
         else:
-            return self._container._water_deficit
-
-    @property
-    def _soil_moisture_content(self):
-        if self._container is None:
-            return self._soil_moisture_content_
-        else:
-            return self._container._soil_moisture_content
+            return self._container.stress_index
 
     @property
     def abortion_fraction(self):
@@ -538,11 +517,7 @@ class Female(Cohort):
 
     @property
     def inflorescence_abortion_fraction(self):
-        """ The monthly abortion fraction (1/month).
-
-        Here we derive it's value.
-
-        """
+        """ The inflorescence abortion fraction (1/day). """
 
         t = self.age
 
@@ -556,29 +531,22 @@ class Female(Cohort):
 
     @property
     def _inflorescence_abortion_fraction(self):
-        """ The monthly abortion fraction (1/month).
-
-        Here we derive it's value.
-        """
+        """ The inflorescence abortion fraction (1/day). """
 
         base = self.parameters['inflorescence_abortion_fraction']['value']
 
-        t0 = self.inflorescence_abortion_t0
-        t1 = self.inflorescence_abortion_t1
-
-        timespan =  t1-t0
-
-        driver = self._soil_moisture_content
-        threshold = self.parameters['water_stress_inflorescence_abortion_threshold']['value']
-        slope = self.parameters['water_stress_inflorescence_abortion_increase']['value']
+        driver = self._stress_index
+        threshold = self.parameters['stress_inflorescence_abortion_threshold']['value']
+        slope = self.parameters['stress_inflorescence_abortion_increase']['value']
 
         # onset when driver < threshold
-        modifier = slope*max(0,threshold-driver)
+        stress_induced = slope*max(0,driver-threshold)
 
-        return (base + modifier)/timespan
+        return base + stress_induced
 
     @property
     def bunch_failure_fraction(self):
+        """ The bunch failure fraction (1/day). """
 
         t = self.age
 
@@ -592,24 +560,31 @@ class Female(Cohort):
 
     @property
     def _bunch_failure_fraction(self):
+        """ The bunch failure fraction (1/day). """    
 
         base = self.parameters['bunch_failure_fraction']['value']
 
-        t0 = self.bunch_failure_t0
-        t1 = self.bunch_failure_t1
-
-        timespan = t1 - t0
-
-        driver = self._soil_moisture_content
-        threshold = self.parameters['water_stress_bunch_failure_threshold']['value']
-        slope = self.parameters['water_stress_bunch_failure_increase']['value']
+        driver = self._stress_index
+        threshold = self.parameters['stress_bunch_failure_threshold']['value']
+        slope = self.parameters['stress_bunch_failure_increase']['value']
 
         # onset when driver < threshold
-        modifier = slope*max(0,threshold-driver)
+        stress_induced = slope*max(0,driver-threshold)
 
-        return (base + modifier)/timespan
+        return base + stress_induced
 
     def set_fruit(self):
+        """ Initializes additional bunch components:
+
+        - mesocarp oil AND fibers
+        - kernel oil
+        
+        Afterwards
+
+        >>> cohort.has_flowered
+        True
+        
+        """
 
         self.mesocarp_oil = MesocarpOil(self,
                                         age=self.age,
@@ -644,15 +619,6 @@ class Female(Cohort):
     def is_deletable(self):
         """ When to delete this cohort? (bool) - (metabolically inactive) """
         return self.age > self.t_maturity
-
-    @property
-    def mesocarp_oil_content(self):
-        """ Mesocarp oil content (DM/DM). """
-        mass = self.mass
-        if self.has_flowered and mass > 0:
-            return self.mesocarp_oil.mass/mass
-        else:
-            return 0
 
 class Male(Cohort):
     _name = 'male'

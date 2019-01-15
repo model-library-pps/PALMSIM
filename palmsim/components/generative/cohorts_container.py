@@ -21,20 +21,6 @@ class Cohorts(object):
 
     parameters = yaml.load("""
 
-        female_fraction_decrease_threshold:
-            value: 1.
-            unit: '1'
-            info: 'The soil moisture content below which sex ratio response sets in.'
-            source: 'Calibration.'
-            uncertainty: 20%
-
-        soil_moisture_specific_female_fraction_decrease:
-            value: 1.2
-            unit: '1'
-            info: 'Decrease of the female fraction per unit drop of soil moisture content past the threshold.'
-            source: 'Calibration.'
-            uncertainty: 20%
-
         female_fraction_k:
             value: .3
 
@@ -44,12 +30,26 @@ class Cohorts(object):
         female_fraction_asymptote:
             value: .3
 
-        female_fraction_minimum:
+        stress_female_fraction_asymptote:
+            value: 0.4
+            unit: '1'
+            info: 'The maximum relative decrease in the female fraction due to stress.'
+            source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
+            uncertainty: 10%
+
+        stress_female_fraction_increase:
+            value: 1.5
+            unit: '1'
+            info: 'The decrease of the female fraction per unit increase of the stress index.'
+            source: 'Calibration.'
+            uncertainty: 10%
+
+        stress_female_fraction_x0:
             value: 0.1
-            unit: '1,YAP'
-            info: 'The minimum fraction female --- expected to be a plant characteristic.'
-            source: 'Calibration - currently an ad hoc estimate based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
-            uncertainty: 20%
+            unit: '1'
+            info: 'The stress index at which the stress response (slope) is maximum. '
+            source: 'Calibration.'
+            uncertainty: 10%
 
         bunch_FM_to_DM_ratio:
             value: 1.8
@@ -61,13 +61,13 @@ class Cohorts(object):
             value: 20
             unit: 'month'
             info: 'The time of onset of inflorescence production that leads to actual harvestible bunches in terms of MAP.'
-            source: 'Calibration -- hardly reported in the literature thus a contribution.'
+            source: 'Calibration -- hardly reported in the literature, a contribution.'
 
         onset_steepness:
             value: .5
             unit: '1/month'
             info: 'The steepness of the onset of inflorescence production -- the time derivative of the onset. I.e. .5 -> in one month the fraction of inflorescences growing goes up by 50%.'
-            source: 'Calibration -- hardly reported in the literature thus a contribution.'
+            source: 'Calibration -- hardly reported in the literature, a contribution.'
 
         t_maturity:
             value: 1080
@@ -106,7 +106,7 @@ class Cohorts(object):
         onset_multiplicity_factor       : '1'
         bunch_failure_fraction          : '1'
         inflorescence_abortion_fraction : '1'
-        number_of_cohorts               : '1'
+        _number_of_cohorts               : '1'
         female_fraction                 : '1'
         FFB_production                  : 't/ha/yr'
         PKO_production                  : 'kg_DM/ha/day'
@@ -151,9 +151,9 @@ class Cohorts(object):
 
     @property
     def Ic(self):
-        """ The so-called index of competition.
+        """ The ratio of actual growth to potential growth (1), in terms of assimilates.
 
-        After Combres et al., 2013.
+        For a lack of a better name dubbed Ic "index of competion"  after Combres et al., 2013.
         """
 
         if self.potential_sink_strength == 0:
@@ -165,25 +165,8 @@ class Cohorts(object):
 
     @property
     def stress_index(self):
-        return self.Ic
-
-    @property
-    def _water_deficit(self):
-        """ The water deficit - relative to the critical deficit."""
-        if self._palm is None:
-
-            return 0
-        else:
-            return self._palm.soil.critical_deficit_exceedance
-
-    @property
-    def _soil_moisture_content(self):
-        """ The water deficit - relative to the critical deficit."""
-        if self._palm is None:
-
-            return 1
-        else:
-            return self.stress_index #self._palm.soil.moisture_content
+        """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
+        return 1 - self.Ic
 
     @property
     def _DAP(self):
@@ -249,6 +232,28 @@ class Cohorts(object):
     # Update
     ########
     def update(self,dt=1):
+        """ Update the cohorts.
+        
+        Involves in the following order
+
+         - Updating the existing cohorts:
+           - update each cohort
+               - mass growth (mass)
+               - abortion (multiplicity)
+               - age            
+        - Differentiating and spliting each
+         "mature" indeterminate cohort to make a
+           - female cohort
+           - male cohort
+        - Adding new indeterminate cohorts
+        - Deleting delete-able
+         (metabolically in-active) cohorts:
+           - Male's past maturity age
+           - Female's past harvestible age
+           - Empty cohorts (multiplicity ~= 0)
+        - Calculating the potential/relative sink strength of the cohorts.
+
+        """
 
         # Calculated in the PalmSim's "assimilates" object.
         self.assim_growth = self.get_assim_growth()
@@ -277,10 +282,10 @@ class Cohorts(object):
 
         harvest = [x for x in self._females if x.is_harvestible]
 
+        # take the oldest cohort
         if harvest:
-            self._bunches = [harvest[0]]
-
-        self.to_delete = [x for x in self.cohorts if x.is_deletable]
+            last_cohort = harvest[0]
+            self._bunches = [last_cohort]
 
         self.cohorts = [x for x in self.cohorts if not x.is_deletable]
 
@@ -497,7 +502,7 @@ class Cohorts(object):
     # Fraction female
     #################
     @property
-    def _female_fraction(self):
+    def female_fraction_baseline(self):
         """ The female fraction at sex determination (1). """
 
         t = self._DAP/365
@@ -514,15 +519,17 @@ class Cohorts(object):
     def female_fraction(self):
         """ The female fraction at sex determination (1). """
 
-        coeff = self.parameters['soil_moisture_specific_female_fraction_decrease']['value']
-        threshold = self.parameters['female_fraction_decrease_threshold']['value']
-        driver = self._soil_moisture_content
+        a = self.parameters['stress_female_fraction_asymptote']['value']
+        s = self.parameters['stress_female_fraction_increase']['value']
+        x0 = self.parameters['stress_female_fraction_x0']['value']
+        
+        x = self.stress_index
 
-        modifier = 1-coeff*max(0,threshold-driver)
+        baseline = self.female_fraction_baseline
 
-        minimum = self.parameters['female_fraction_minimum']['value']
+        stress_effect = 1 - a*(1/(1 + np.exp(-4*s*(x-x0)/a))) + a*(1/(1 + np.exp(-4*s*(0-x0)/a)))
 
-        return min(max(minimum,modifier*self._female_fraction),1)
+        return stress_effect*baseline
 
     #############
     # New cohorts
@@ -556,11 +563,11 @@ class Cohorts(object):
             return self._palm.planting_density
 
     @property
-    def number_of_cohorts(self):
+    def _number_of_cohorts(self):
         """ The number of cohorts. """
         return len(self.cohorts)
 
     @property
-    def number_of_inflorescences(self):
+    def _number_of_inflorescences(self):
         """ The number of inflorescences (1/ha). """
         return sum([x.multiplicity for x in self.cohorts])
