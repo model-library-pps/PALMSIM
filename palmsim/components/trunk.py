@@ -10,6 +10,8 @@ from .helpers import Spline
 from .constants import DAYS_PER_MONTH
 from .constants import DEFAULT_PLANTING_DENSITY
 
+from math import exp
+
 @add_dumps
 class Trunk(object):
     ''' Trunk related logic.
@@ -226,7 +228,7 @@ class Trunk(object):
     #~~~~~~~~~~~~
 
     @property
-    def maintenance_requirement(self):
+    def maintenance_requirement_B(self):
 
         ''' Maintenance requirement (kg_CH2O/ha/day).
 
@@ -236,6 +238,27 @@ class Trunk(object):
         c = self.parameters['specific_maintenance']['value']
 
         res = c * self.mass
+
+        return res
+
+    @property
+    def maintenance_requirement(self):
+
+        ''' Maintenance requirement (kg_CH2O/ha/day).
+
+        Maintenance = specific_maintenance (g_CH2O/g_DM/day) * mass (kg_DM/ha)
+        '''
+
+        c = self.parameters['specific_maintenance']['value']
+
+        a = 144*100
+        s = 1
+
+        x = self.mass
+
+        active_mass = a*(1-exp(-s*x/a))
+
+        res = c * active_mass
 
         return res
 

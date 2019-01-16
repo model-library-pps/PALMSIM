@@ -272,8 +272,10 @@ class PalmField():
     def date_tuple(self):
         return (self.year, self.month, self.day)
 
-    def update(self, dt=1):
+    def update(self):
         ''' Update by dt days. '''
+
+        dt = self.dt
 
         assert isinstance(dt, int)
         assert dt <= 31
@@ -292,9 +294,8 @@ class PalmField():
 
         self.weather.update()
 
-        self.soil.update()
+        self.soil.update(dt=dt)
         self.assimilates.update()
-
         self.management.update()
         self.fronds.update(dt=dt)
         self.trunk.update(dt=dt)
@@ -342,35 +343,25 @@ class PalmField():
         return 1000*self.fronds.mass/self.planting_density
 
 
-    def run(self,duration=360,dt=1):
+    def run(self, duration=30*365):
 
-        if (1%dt) != 0:
-            raise ValueError
+        dt = self.dt
 
-        N_steps = duration / dt
-
-        if N_steps%1 != 0:
-            raise ValueError
-
-        N_steps = int(N_steps)
+        nsteps = duration//dt
 
         res = {}
 
-        units = self.units
-
-        for step in range(N_steps):
-
+        for i in range(nsteps):
+            
             self._update(dt=dt)
-            values = self.to_dict()
-            res[self.MAP] = values
+            
+            res[i] = self.to_dict()
 
         df = pd.DataFrame(res).T
 
-        df.index = pd.to_datetime(df['date'])
+        df = df.set_index(pd.to_datetime(df['date']))
 
         df = df.apply(pd.to_numeric, errors='ignore')
-
-        df.columns = [my_replace(s) for s in df.columns]
 
         return df
 

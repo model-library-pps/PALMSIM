@@ -214,7 +214,7 @@ class Indeterminate(Cohort):
     parameters = yaml.load("""
 
         t_differentiation:
-            value: 0.175
+            value: 0.2
             unit: '1'
             info: 'The time of sex differentiation relative to
                     the duration of the total female phenological cycle.'
@@ -225,17 +225,17 @@ class Indeterminate(Cohort):
             info: 'Monthly aborted fraction before (!) sex differentiation.'
             source: 'Estimated to be insignificantly small - note, not mentioned in Adam et al. 2011.'
         potential_mass_a:
-            value: 17
+            value: 21
             unit: 'kg_DM'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
         potential_mass_b:
-            value: .2
+            value: .14
             unit: '1/year'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
         potential_mass_x0:
-            value: 2.0
+            value: 2.2
             unit: ''
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
@@ -412,42 +412,47 @@ class Female(Cohort):
             info: 'The point in the phenological cycle at which anthesis takes place.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
-        bunch_failure_fraction:
-            value: 0
+        stress_bunch_failure_asymptote:
+            value: 0.013
             unit: '1/day'
-            info: 'Base-line aborted fraction during bunch abortion.'
-            source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
-
-        inflorescence_abortion_fraction:
-            value: 0
-            unit: '1/day'
-            info: 'Base-line aborted fraction during inflorescence abortion.'
-            source: 'Based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 62.'
+            info: 'The maximum bunch failure due to stress.'
+            source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
+            uncertainty: 10%
 
         stress_bunch_failure_increase:
-            value: 0.0432
+            value: 0.03
             unit: '1'
-            info: 'The increase in bunch failure given an increase in stress (coeff. of proportionality).'
-            source: 'Calibration, less sensitive than sex ratio and bunch failure.'
+            info: 'The increase in bunch failure per unit increase of the stress index.'
+            source: 'Calibration.'
+            uncertainty: 10%
 
-        stress_bunch_failure_threshold:
-            value: 0.
+        stress_bunch_failure_x0:
+            value: 0.2
             unit: '1'
-            info: 'Stress index above which bunch failure response sets in.'
-            source: 'Calibration, less sensitive than sex ratio and infloresence abortion.'
+            info: 'The stress index at which the stress response (slope) is maximum. '
+            source: 'Calibration.'
+            uncertainty: 10%
+
+        stress_inflorescence_abortion_asymptote:
+            value: 0.01
+            unit: '1/day'
+            info: 'The maximum infloresence abortion due to stress.'
+            source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
+            uncertainty: 10%
 
         stress_inflorescence_abortion_increase:
-            value: 0.031
-            unit: '1'
-            info: 'The increase in inflorescence abortion given an increase in stress (coeff. of proportionality).'
-            source: 'Calibration, less sensitive than sex ratio, more sensitive than bunch failure.'
+            value: 0.03
+            unit: '1/day'
+            info: 'The increase in infloresence abortion per unit increase of the stress index.'
+            source: 'Calibration.'
+            uncertainty: 10%
 
-        stress_inflorescence_abortion_threshold:
-            value: 0.
+        stress_inflorescence_abortion_x0:
+            value: 0.2
             unit: '1'
-            info: 'Stress index above which inflorescence abortion response sets in.'
-            source: 'Calibration, less sensitive than sex ratio, more sensitive than bunch failure.'
-
+            info: 'The stress index at which the stress response (slope) is maximum. '
+            source: 'Calibration.'
+            uncertainty: 10%
             """)
 
     sex = 'female'
@@ -533,16 +538,18 @@ class Female(Cohort):
     def _inflorescence_abortion_fraction(self):
         """ The inflorescence abortion fraction (1/day). """
 
-        base = self.parameters['inflorescence_abortion_fraction']['value']
-
         driver = self._stress_index
-        threshold = self.parameters['stress_inflorescence_abortion_threshold']['value']
-        slope = self.parameters['stress_inflorescence_abortion_increase']['value']
 
-        # onset when driver < threshold
-        stress_induced = slope*max(0,driver-threshold)
+        a = self.parameters['stress_inflorescence_abortion_asymptote']['value']
+        s = self.parameters['stress_inflorescence_abortion_increase']['value']
+        x0 = self.parameters['stress_inflorescence_abortion_x0']['value']
 
-        return base + stress_induced
+        x = driver
+
+        res = a*(1/(1 + exp(-4*s*(x-x0)/a))) - a*(1/(1 + exp(-4*s*(0-x0)/a)))
+
+        return res
+
 
     @property
     def bunch_failure_fraction(self):
@@ -562,16 +569,17 @@ class Female(Cohort):
     def _bunch_failure_fraction(self):
         """ The bunch failure fraction (1/day). """    
 
-        base = self.parameters['bunch_failure_fraction']['value']
-
         driver = self._stress_index
-        threshold = self.parameters['stress_bunch_failure_threshold']['value']
-        slope = self.parameters['stress_bunch_failure_increase']['value']
 
-        # onset when driver < threshold
-        stress_induced = slope*max(0,driver-threshold)
+        a = self.parameters['stress_bunch_failure_asymptote']['value']
+        s = self.parameters['stress_bunch_failure_increase']['value']
+        x0 = self.parameters['stress_bunch_failure_x0']['value']
 
-        return base + stress_induced
+        x = driver
+
+        res = a*(1/(1 + exp(-4*s*(x-x0)/a))) - a*(1/(1 + exp(-4*s*(0-x0)/a)))
+
+        return res
 
     def set_fruit(self):
         """ Initializes additional bunch components:

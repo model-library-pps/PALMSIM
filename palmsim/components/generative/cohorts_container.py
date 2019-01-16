@@ -22,16 +22,16 @@ class Cohorts(object):
     parameters = yaml.load("""
 
         female_fraction_k:
-            value: .3
+            value: 0.3
 
         female_fraction_t0:
-            value: 10
+            value: 9
 
         female_fraction_asymptote:
-            value: .3
+            value: .4
 
         stress_female_fraction_asymptote:
-            value: 0.4
+            value: 0.35
             unit: '1'
             info: 'The maximum relative decrease in the female fraction due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
@@ -527,7 +527,7 @@ class Cohorts(object):
 
         baseline = self.female_fraction_baseline
 
-        stress_effect = 1 - a*(1/(1 + np.exp(-4*s*(x-x0)/a))) + a*(1/(1 + np.exp(-4*s*(0-x0)/a)))
+        stress_effect = 1 - a*(1/(1 + exp(-4*s*(x-x0)/a))) + a*(1/(1 + exp(-4*s*(0-x0)/a)))
 
         return stress_effect*baseline
 

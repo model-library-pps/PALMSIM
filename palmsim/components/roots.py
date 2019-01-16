@@ -70,16 +70,16 @@ class Roots(object):
         uncertainty: 20%
 
     potential_growth_rates:
-        value: [[0, 4.5],
-                 [3, 4.5],
-                 [6, 4.5],
-                 [9, 4.5],
-                 [12, 4.5],
-                 [15, 4.5],
-                 [18, 4.5],
-                 [21, 4.5],
-                 [24, 4.5],
-                 [27, 4.5]]
+        value: [[0, 3.5],
+                [3, 5.7],
+                [6, 5.1],
+                [9, 3.4],
+                [12, 1.9],
+                [15, 1.0],
+                [18, 0.5],
+                [21, 0.3],
+                [24, 0.1],
+                [27, 0.1]]
         unit: 'YAP, kg/palm/year'
         info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
         source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'

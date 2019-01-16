@@ -107,13 +107,6 @@ class Fronds(object):
                     model (copied from SUCROS) using oil palm LR measurements by Breure, Gerritsma.'
         uncertainty: 10%
 
-    WUE:
-        value: 0.09
-        unit: 't_CH2O/ha/mm'
-        info: 'The potential water use efficiency.'
-        source: 'An estimate given a production of 8.8 t_CH2O/ha/month and transpiration of 150 mm/month.'
-        uncertainty: 20%
-
     k:
         value: 0.33
         unit: '1'
