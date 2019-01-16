@@ -395,7 +395,7 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_t0:
-            value: .9
+            value: .92
             unit: 'day'
             info: 'The point in the phenological cycle at which bunch failure starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
@@ -413,14 +413,14 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         stress_bunch_failure_asymptote:
-            value: 0.013
+            value: 0.015
             unit: '1/day'
             info: 'The maximum bunch failure due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_bunch_failure_increase:
-            value: 0.03
+            value: 0.04
             unit: '1'
             info: 'The increase in bunch failure per unit increase of the stress index.'
             source: 'Calibration.'

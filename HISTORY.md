@@ -2,6 +2,22 @@
 History
 =======
 
+2.4.3a (2019-01-10)
+-------------------
+
+**Improvements**
+- Stress responses modelled using sigmoids instead of linear relationships without an asymptote.
+
+**Bug Fixes**
+- Soil updating - earlier didnt appropriately take into account dt.
+
+2.4.1a (2019-01-10)
+-------------------
+
+**Improvements**
+- SUCROS style photosynthesis
+- Shortage of assimilates for generative growth as THE stress index.
+
 2.4.0a (2018-12-12)
 -------------------
 
