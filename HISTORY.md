@@ -2,6 +2,14 @@
 History
 =======
 
+2.4.4a (2019-01-10)
+-------------------
+
+**Improvements**
+- Potential evapotranspiration now estimated using Penman-Monteith combination equation instead of the IRHO method.
+- Revised examples
+- Removed redundant files
+
 2.4.3a (2019-01-10)
 -------------------
 
