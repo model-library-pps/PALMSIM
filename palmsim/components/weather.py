@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-''' Provides the interface to the weather data. '''
+""" Provides the interface to the weather data. """
 
 import yaml
 import numpy as np
@@ -12,14 +12,15 @@ from math import exp, sin, cos, sqrt, pi, acos, asin
 
 PI = pi
 
+SECONDS_PER_DAY = 24*60*60
+
 def rad(deg):
     """ Convert from degrees to radials. """
     return 2*PI*(deg/360)
 
-
 @add_dumps
 class Weather(object):
-    ''' Weather related logic.
+    """ Weather related logic.
 
     The instance of this class (singleton) loads the input weather data into memory and
     calculates derived quantities.
@@ -40,9 +41,9 @@ class Weather(object):
     *Although this is common practice for crop models
     there are reasons to believe that in reality the PAR fraction varies
     non-trivially in the 0.4--0.5 range [missing reference].
-    '''
+    """
 
-    parameters = yaml.load('''
+    parameters = yaml.load("""
     PAR_fraction:
         value: 0.5
         unit: '1'
@@ -57,7 +58,41 @@ class Weather(object):
                 Used to estimate the instantaneous radiation (J/m2/s)
                 from the daily total radiation (MJ/m2/day).'
         source: 'The 2004 book by Goudriaan and Van Laar, chapter 3.'
-    ''')
+
+    sigma:
+        value: 5.668E-8
+        unit: '?'
+        info: 'Constant in the Stefan-Boltzmann equation.'
+        source: '[0] - setpmd.for'
+
+    psychrometer_coefficient:
+        value: 0.067
+        unit: 'kPa/degC'
+        source: ''
+
+    latent_heat_water:
+        value: 2.454
+        unit: 'MJ/kg'
+        source: ''
+
+    density_dry_air:
+        value: 1.224
+        unit: 'kg/m3'
+        source: ''
+
+    heat_capacity_dry_air:
+        value: 1013
+        unit: 'J/kg/degC'
+        source: ''
+
+    albedo:
+        value: 0.14
+        unit: '1'
+        info: 'Albedo of a twelve year old oil palm'
+        source: 'Meijide et al. 2017, Controls of water and energy fluxes
+                 in oil palm plantations: environmental variables and oil palm age'
+
+    """)
 
     units = {'PAR'                   : 'MJ/m2/day',
              'PAR_monthly'           : 'TJ/ha/mo',
@@ -118,7 +153,7 @@ class Weather(object):
 
     @property
     def PAR(self):
-        ''' Photo-synthetically active radiation (MJ/m2/day). '''
+        """ Photo-synthetically active radiation (MJ/m2/day). """
         c = self.parameters['PAR_fraction']['value']
         return c*self.radiation
 
@@ -126,7 +161,7 @@ class Weather(object):
 
     @property
     def radiation(self):
-        ''' Mean monthly visible radiation (MJ/m2/day). '''
+        """ Mean monthly visible radiation (MJ/m2/day). """
         t = self._date_tuple
         s = self.radiation_series
         if (t and s) and (t in s):
@@ -144,7 +179,7 @@ class Weather(object):
 
     @property
     def rainfall(self):
-        '''Monthly rainfall (mm/mo). '''
+        """Monthly rainfall (mm/mo). """
         t = self._date_tuple
         s = self.rainfall_series
         if (t and s) and (t in s):
@@ -154,7 +189,7 @@ class Weather(object):
 
     @property
     def raindays(self):
-        '''Monthly raindays (1). '''
+        """Monthly raindays (1). """
         t = self._date_tuple
         s = self.raindays_series
         if (t and s) and (t in s):
@@ -166,40 +201,40 @@ class Weather(object):
 
     @property
     def rainfall_series(self):
-        '''Monthly rainfall (mm/mo) time-series.
+        """Monthly rainfall (mm/mo) time-series.
 
         A dict with a (year,month)-tuple keys and float values.
-        '''
+        """
         return self._rainfall_series
 
     @property
     def radiation_series(self):
-        ''' Mean monthly visible radiation (MJ/m2/day) - time-series.
+        """ Mean monthly visible radiation (MJ/m2/day) - time-series.
 
         A dict with a (year,month)-tuple keys and float values.
-        '''
+        """
         return self._radiation_series
 
     @property
     def raindays_series(self):
-        '''Monthly raindays (1) - time-series.
+        """Monthly raindays (1) - time-series.
 
         A dict with a (year,month)-tuple keys and float values.
-        '''
+        """
         return self._raindays_series
 
     #~~~~~~~~~~~~~~~~~~~
 
     @rainfall_series.setter
     def rainfall_series(self,series):
-        ''' Sets the monthly rainfall time-series variable.
+        """ Sets the monthly rainfall time-series variable.
 
         Expects a date-time indexed time-series e.g.
         2007-01-01 00:00:00 - 120
 
         Furthermore, sets the all-time mean rainfall -
         used by default in case of missing values.
-        '''
+        """
 
         if series is None:
 
@@ -221,14 +256,14 @@ class Weather(object):
 
     @radiation_series.setter
     def radiation_series(self,series):
-        ''' Sets the monthly radiation time-series variable.
+        """ Sets the monthly radiation time-series variable.
 
         Expects a date-time indexed time-series e.g.
         2007-01-01 00:00:00 - 12
 
         Furthermore, sets the all-time mean radiation -
         used by default in case of missing values.
-        '''
+        """
 
         if series is None:
 
@@ -250,14 +285,14 @@ class Weather(object):
 
     @raindays_series.setter
     def raindays_series(self,series):
-        ''' Sets the monthly raindays time-series variable.
+        """ Sets the monthly raindays time-series variable.
 
         Expects a date-time indexed time-series e.g.
         2007-01-01 00:00:00 - 12
 
         Furthermore, sets the all-time mean number of raindays -
         used by default in case of missing values.
-        '''
+        """
 
         if series is None:
 
@@ -281,7 +316,7 @@ class Weather(object):
 
     @property
     def radiation_series_mean(self):
-        ''' The all-time mean of the mean-monthly radiation (MJ/m2/day). '''
+        """ The all-time mean of the mean-monthly radiation (MJ/m2/day). """
         if self._radiation_series_mean:
             return self._radiation_series_mean
         else:
@@ -289,7 +324,7 @@ class Weather(object):
 
     @property
     def rainfall_series_mean(self):
-        ''' The all-time mean of the monthly rainfall (mm/mo). '''
+        """ The all-time mean of the monthly rainfall (mm/mo). """
         if self._rainfall_series_mean:
             return self._rainfall_series_mean
         else:
@@ -297,12 +332,29 @@ class Weather(object):
 
     @property
     def raindays_series_mean(self):
-        ''' The all-time mean of the monthly raindays (1/mo). '''
+        """ The all-time mean of the monthly raindays (1/mo). """
         if self._raindays_series_mean:
             return self._raindays_series_mean
         else:
             return self._raindays_series_mean_
 
+    @property
+    def temperature(self):
+        """ Average daily temperature 2 m above earth surface (degC). """
+    
+        return 28
+
+    @property
+    def relative_humidity(self):
+        """ (1) """
+    
+        return .86
+
+    @property
+    def windspeed(self):
+        """ (m/s) """
+    
+        return 1
 
     #---------------------------
 
@@ -326,16 +378,6 @@ class Weather(object):
             return self._latitude_
         else:
             return parent.latitude
-
-    @property
-    def radiation_extraterrestrial(self):
-        """ The peak solar irridiance just outside the atmosphere (J/m2/s). """
-
-        latitude = self._latitude
-        day = self._DOY
-        hour = 12
-
-        return self.calc_radiation_extraterrestrial(hour)
 
     @property
     def radiation_extraterrestrial_daily(self):
@@ -527,3 +569,173 @@ class Weather(object):
         Iext = self.radiation_extraterrestrial_daily
 
         return I/Iext
+
+    @property
+    def canopy_net_radiation_capture(self):
+        """ The net radiation received by the canopy surface (J/m2/day). """
+
+        albedo = self.parameters['albedo']['value']
+        
+        # short and longwave
+        I_sun = self.radiation
+
+        # longwave
+        I_sky = self.radiation_longwave_sky_daily
+        I_earth = self._radiation_longwave_earth_daily
+
+        return (1-albedo)*I_sun + I_sky - I_earth
+
+    @property
+    def ET_potential(self):
+        """ (mm/day).
+        
+        Calculated as prescribed by the FAO.
+        """
+
+        u = self.windspeed
+        Rn = self.canopy_net_radiation_capture
+        VPD = self.vapour_pressure_deficit
+        T = self.temperature
+
+        c_psy = self.parameters['psychrometer_coefficient']['value']
+        slope = self.saturated_vapour_pressure_slope
+
+        num = 0.408*slope*Rn + c_psy * (900/(T+273)) * u * VPD
+        denum = (slope + c_psy*(1+0.32*u))
+
+        ET = num/denum
+
+        return ET
+
+    @property
+    def _radiation_longwave_earth(self):
+        """ The (long-wave) radiation given off by the earth (J/m2/s). """
+
+        T_avg = self.temperature
+
+        sigma = self.parameters['sigma']['value']
+
+        # 0 deg C -> Kelvin
+        T0 = 273.16
+
+        T = T_avg + T0
+
+        # Stefan-Boltzmann
+        I = sigma*T**4
+
+        return I
+
+    @property
+    def _radiation_longwave_earth_daily(self):
+        """ The (long-wave) radiation given off by the earth (MJ/m2/day). """
+
+        I = self._radiation_longwave_earth
+
+        # seconds per day
+        SPD = SECONDS_PER_DAY
+
+        return 10**-6 * SPD * I
+
+    @property
+    def _radiation_longwave_sky(self):
+        """ The (long-wave) radiation given off by the sky (J/m2/s).
+        
+        Involves the use of an adapted Swinbank formula - see p. 7 of
+        https://library.wur.nl/WebQuery/wurpubs/fulltext/4413
+        
+        """
+
+        # note, should be in the range [0,a0]
+        a = self.transmission_factor
+        T_avg = self.temperature
+        I_earth = self._radiation_longwave_earth
+
+        # reference transmission factor -- clear skies
+        a0 = 0.7
+
+        # The estimated radiation given off by the sky in case
+        # it was a perfect black-body radiator (balance)
+        I_sky_BB = I_earth 
+
+        # Swinbank constant - see the original paper by Swinbank, 1963.
+        c = 5.31E-13
+
+        # 0 deg C -> Kelvin
+        T0 = 273.16
+        T = T_avg + T0
+
+        # Adapted Swinbank formula:
+        # a linear combination via a of the clear-skies Swinbank estimate
+        # and the black-body sky estimate
+
+        radiation_longwave_sky = (a/a0) * c * T**6 + ((a0 - a)/a0) * I_sky_BB
+
+        # a = 0 -> I_sky_BB
+        # a = a0 -> Swinbank
+        return radiation_longwave_sky
+
+    @property
+    def radiation_longwave_sky_daily(self):
+        """ The (long-wave) radiation given off by the sky (MJ/m2/day). """
+
+        I = self._radiation_longwave_sky
+
+        # seconds per day
+        SPD = SECONDS_PER_DAY
+
+        return 10**-6 * SPD * I
+
+
+
+    @property
+    def vapour_pressure_early_morning(self):
+        """ . """
+
+        VPref = self.saturated_vapour_pressure
+        rH = self.relative_humidity
+
+        return rH*VPref
+
+    @property
+    def vapour_pressure_deficit(self):
+        """ (kPA) """
+
+        VPa = self.vapour_pressure_early_morning
+        VPref = self.saturated_vapour_pressure
+
+        return VPref - VPa
+
+    @property
+    def saturated_vapour_pressure(self):
+        """ The satured vapour pressure (kPa).
+        
+         Is derived from the (daily average) temperature (deg C).
+
+         Adopted from the Fortran SUBROUTINE SVPS1 v1.0 (1991),
+         can be found in the CASE2 source-code.
+        """
+
+        # deg C
+        T = self.temperature
+
+        VPS = 0.1*6.10588*exp(17.32491*T/(T+238.102))
+        
+        return VPS
+
+    @property
+    def saturated_vapour_pressure_slope(self):
+        """ The change of the satured vapour pressure with temperature (kPa/C).
+
+         Is derived from the (daily average) temperature (deg C).
+
+         Adopted from the Fortran SUBROUTINE SVPS1 v1.0 (1991),
+         can be found in the CASE2 source-code.       
+        """
+
+        # deg C
+        T = self.temperature
+        VPS = self.saturated_vapour_pressure
+
+        slope = 238.102*17.32491*VPS/(T+238.102)**2
+        
+        return slope

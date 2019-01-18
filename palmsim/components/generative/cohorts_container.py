@@ -31,14 +31,14 @@ class Cohorts(object):
             value: .4
 
         stress_female_fraction_asymptote:
-            value: 0.35
+            value: 0.4
             unit: '1'
             info: 'The maximum relative decrease in the female fraction due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_female_fraction_increase:
-            value: 1.5
+            value: 1.8
             unit: '1'
             info: 'The decrease of the female fraction per unit increase of the stress index.'
             source: 'Calibration.'
@@ -52,10 +52,13 @@ class Cohorts(object):
             uncertainty: 10%
 
         bunch_FM_to_DM_ratio:
-            value: 1.8
+            value: 1.5
             unit: '1'
             info: 'The fresh to dry mass of a bunch.'
-            source: 'Calibration - currently an ad hoc estimate based on the information the Oil Palm Monograph by Corley and Tinker, chapter 5 - the figure on bunch component mass over time.'
+            source: 'Based on the article
+                        The reflection of moisture content on palm oil development
+                        during the ripening process of fresh fruits in 
+                        Journal of Food Agriculture and Environment 10(1):203-209.'
 
         onset_time:
             value: 20
@@ -140,7 +143,11 @@ class Cohorts(object):
     @property
     def t_maturity(self):
 
-        return self.parameters['t_maturity']['value']
+        t = self._DAP/365
+
+        return 1040*(1-t/30) + 1200*(t/30)
+
+        # return #self.parameters['t_maturity']['value']
 
     @property
     def _dt(self):

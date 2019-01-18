@@ -57,7 +57,7 @@ class IRHOSoil(object):
     parameters = yaml.load('''
 
     water_holding_capacity:
-        value: 600.
+        value: 500.
         unit: 'mm'
         info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
         source: 'Input: soil/root characteristic.'
@@ -76,8 +76,8 @@ class IRHOSoil(object):
         source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
         error: 0
 
-    relative_transpiration_rate_a:
-        value: 0.15
+    relative_transpiration_rate_x0:
+        value: 0.2
         unit: '1'
         info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
         source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
@@ -259,7 +259,7 @@ class IRHOSoil(object):
         A (extreme) value of 0 corresponds to no transpiration.
         '''
         
-        a = self.parameters['relative_transpiration_rate_a']['value']
+        a = self.parameters['relative_transpiration_rate_x0']['value']
         b = self.parameters['relative_transpiration_rate_b']['value']
 
         # ET reduces with rel. lack of AW
@@ -300,4 +300,20 @@ class IRHOSoil(object):
 
         return max(0.,self.water_holding_capacity-self.available_water)
 
-Soil = IRHOSoil
+
+@add_dumps
+class PenmanSoil(IRHOSoil):
+
+    @property
+    def evapotranspiration_potential(self):
+        """ . """
+    
+        parent = self._weather
+    
+        if parent is None:
+            return 0
+        else:
+            return parent.ET_potential
+
+Soil = PenmanSoil
+

@@ -1,0 +1,6 @@
+Ideas
+
+Derive maintenance respiration coefficients from tissue N content and mineral content at runtime/model initialization
+Automatically track changes in model behaviour over time; generate model bevahiour graph with one “build” command
+Estimate fraction PAR in the radiation more accurately - ~.45 on a sunny day, ~.55 on a cloudy day.
+Run duration specced in years instead of days.

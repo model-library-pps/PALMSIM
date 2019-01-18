@@ -169,7 +169,7 @@ class PalmField():
                     month_of_planting = 1,
                     day_of_planting =1,
                     latitude = 0,
-                    dt = 1):
+                    dt = 10):
 
         # simulation run-time is kept by instances of this class
 

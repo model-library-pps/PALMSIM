@@ -206,7 +206,7 @@ class Trunk(object):
 
         c = (1/365)
 
-        return c*self._planting_density*yearly_per_palm
+        return max(0, c*self._planting_density*yearly_per_palm)
 
     @property
     def potential_sink_strength(self):
@@ -251,7 +251,7 @@ class Trunk(object):
 
         c = self.parameters['specific_maintenance']['value']
 
-        a = 144*100
+        a = 144*60
         s = 1
 
         x = self.mass

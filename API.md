@@ -3,16 +3,22 @@ This is a spec of the API of PALMSIM.
 Input
 -----
 
-Weather variables which determine the simulated growth:
+Site-specific weather data - determines the simulated growth.
+In order of importance of accuracy/model sensitivity:
 
-- solar radiation (MJ/m2/day)
-- rainfall (mm/month)
-- rainday (mm/month)
+- daily total short-wave radiation (MJ/m2/day)
+- daily rainfall (mm/day)
+- avg. daily temperature (deg C)
+- avg. daily humidity (%)
+- avg. daily windspeed (m/s)
+
+Note, temperature, humidity and windspeed are used to estimate the potential evapotranspiration (using the Penman-Monteith combination equation).
+In case these variables are relatively constant (varying within +-%5 of the mean), given the nature of the ET estimation, one might get agreeable model result simply taking them as constants.
 
 Output
 ------
 
-A spreadsheet with all sort of model state/rate variables. Most importantly, per topic:
+A spreadsheet with model state/rate variables over time (30 years):
 
 - Bunches:
 	 - Bunch yield (t DM/ha/month) - also in FM

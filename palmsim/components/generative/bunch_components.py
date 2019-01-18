@@ -326,7 +326,7 @@ class Stalk(BunchComponent):
             uncertainty: 5%
 
         potential_mass_fraction:
-            value: .20
+            value: .25
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
@@ -412,7 +412,7 @@ class MesocarpOil(BunchComponent):
             uncertainty: 5%
 
         potential_mass_fraction:
-            value: .40
+            value: .35
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
