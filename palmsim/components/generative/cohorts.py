@@ -214,7 +214,7 @@ class Indeterminate(Cohort):
     parameters = yaml.load("""
 
         t_differentiation:
-            value: 0.2
+            value: 0.15
             unit: '1'
             info: 'The time of sex differentiation relative to
                     the duration of the total female phenological cycle.'
@@ -225,7 +225,7 @@ class Indeterminate(Cohort):
             info: 'Monthly aborted fraction before (!) sex differentiation.'
             source: 'Estimated to be insignificantly small - note, not mentioned in Adam et al. 2011.'
         potential_mass_a:
-            value: 21
+            value: 23
             unit: 'kg_DM'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
@@ -383,26 +383,26 @@ class Female(Cohort):
     parameters = yaml.load("""
 
         inflorescence_abortion_t0:
-            value: .75
+            value: .79
             unit: '1'
             info: 'The point in the phenological cycle at which inflorescence abortion starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         inflorescence_abortion_dt:
-            value: 0.03
-            unit: 'day'
+            value: 0.04
+            unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_t0:
-            value: .92
-            unit: 'day'
+            value: .90
+            unit: '1'
             info: 'The point in the phenological cycle at which bunch failure starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_dt:
-            value: 0.03
-            unit: 'day'
+            value: 0.04
+            unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
@@ -413,42 +413,48 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         stress_bunch_failure_asymptote:
-            value: 0.015
+            value: 0.08
             unit: '1/day'
             info: 'The maximum bunch failure due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_bunch_failure_increase:
-            value: 0.04
+            value: 0.18
             unit: '1'
             info: 'The increase in bunch failure per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
 
         stress_bunch_failure_x0:
-            value: 0.2
+            value: 0.6
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
 
+        stress_inflorescence_abortion:
+            value: 1
+
+        stress_bunch_failure:
+            value: 1
+
         stress_inflorescence_abortion_asymptote:
-            value: 0.01
+            value: 0.08
             unit: '1/day'
             info: 'The maximum infloresence abortion due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_inflorescence_abortion_increase:
-            value: 0.03
+            value: 0.15
             unit: '1/day'
             info: 'The increase in infloresence abortion per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
 
         stress_inflorescence_abortion_x0:
-            value: 0.2
+            value: 0.8
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
@@ -524,6 +530,10 @@ class Female(Cohort):
     def inflorescence_abortion_fraction(self):
         """ The inflorescence abortion fraction (1/day). """
 
+        b = self.parameters['stress_inflorescence_abortion']['value']
+        if b != 1:
+            return 0
+
         t = self.age
 
         t0 = self.inflorescence_abortion_t0
@@ -550,10 +560,13 @@ class Female(Cohort):
 
         return res
 
-
     @property
     def bunch_failure_fraction(self):
         """ The bunch failure fraction (1/day). """
+
+        b = self.parameters['stress_bunch_failure']['value']
+        if b != 1:
+            return 0
 
         t = self.age
 

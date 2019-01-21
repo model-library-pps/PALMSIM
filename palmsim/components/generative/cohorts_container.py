@@ -25,13 +25,13 @@ class Cohorts(object):
             value: 0.3
 
         female_fraction_t0:
-            value: 9
+            value: 12
 
         female_fraction_asymptote:
-            value: .4
+            value: .90
 
         stress_female_fraction_asymptote:
-            value: 0.4
+            value: 0.5
             unit: '1'
             info: 'The maximum relative decrease in the female fraction due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
@@ -45,14 +45,14 @@ class Cohorts(object):
             uncertainty: 10%
 
         stress_female_fraction_x0:
-            value: 0.1
+            value: 0.5
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
 
         bunch_FM_to_DM_ratio:
-            value: 1.5
+            value: 1.9
             unit: '1'
             info: 'The fresh to dry mass of a bunch.'
             source: 'Based on the article
@@ -77,6 +77,24 @@ class Cohorts(object):
             unit: 'day'
             info: 'The age at which the fruit is harvestible.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
+
+        potential_mass_a:
+            value: 23
+            unit: 'kg_DM'
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
+
+        potential_mass_b:
+            value: .14
+            unit: '1/year'
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
+            
+        potential_mass_x0:
+            value: 2.2
+            unit: ''
+            info: 'Co-determines the potential bunch mass.'
+            source: 'Calibration via boundary line analysis.'
 
         """
     )
@@ -103,9 +121,10 @@ class Cohorts(object):
         mean_age                        : 'day'
         multiplicity                    : '1/ha'
         potential_sink_strength         : 'kg_CH2O/ha/day'
-        bunch_weight                    : 'kg_DM'
-        bunch_weight_fresh              : 'kg'
-        bunch_count                     : '1/ha/day'
+        bunch_weight                    : 'kg'
+        bunch_weight_dry                : 'kg_DM'
+        bunch_count                     : '1/ha/mo'
+        bunch_count_daily               : '1/ha/day'        
         onset_multiplicity_factor       : '1'
         bunch_failure_fraction          : '1'
         inflorescence_abortion_fraction : '1'
@@ -145,9 +164,19 @@ class Cohorts(object):
 
         t = self._DAP/365
 
-        return 1040*(1-t/30) + 1200*(t/30)
+        a1 = 1180
+        a0 = 840
+        s = 34
+        x0 = 10
 
-        # return #self.parameters['t_maturity']['value']
+        d = a1-a0
+
+        rise = d*(1/(1 + exp(-4*s*(t-x0)/d)))
+    
+        1080 # @ 12--17 YAP
+        1180 # @ 22 YAP
+
+        return a0 + rise        
 
     @property
     def _dt(self):
@@ -224,6 +253,22 @@ class Cohorts(object):
     ###############
     # Sink-strength
     ###############
+    @property
+    def potential_mass(self):
+        """ The potential mass (kg_DM). """
+
+        a = self.parameters['potential_mass_a']['value']
+        b = self.parameters['potential_mass_b']['value']
+        x0 = self.parameters['potential_mass_x0']['value']
+
+        x = self._DAP/365
+
+        x_ = x - x0
+
+        res  = a*(1 - exp(-b*x_))
+
+        return res
+
     def get_potential_sink_strength(self):
         """ The total potential sink strength (kg_CH2O/ha/day). """
         return sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
@@ -408,42 +453,55 @@ class Cohorts(object):
         return res/self._dt
 
     @property
-    def bunch_production(self):
-        """ (kg_DM/ha/day). """
-        return self.bunch_count*self.bunch_weight
-
-    @property
     def FFB_production(self):
         """ (kg_FM/ha/yr). """
 
-        c = self.parameters['bunch_FM_to_DM_ratio']['value']
+        # daily -> yearly
+        N = self.bunch_count_daily
+        M = self.bunch_weight
 
-        # monthly -> yearly
-
-        return 365*c*self.bunch_production
+        return 365*N*M
 
     @property
-    def bunch_count(self):
+    def bunch_count_daily(self):
         """ (1/ha/day). """
 
         # harvestible number of bunches --- every dt days
-        return sum([x.multiplicity for x in self._bunches])/self._dt
+
+        N = sum([x.multiplicity for x in self._bunches])
+        dt = self._dt
+
+        return N/dt 
+
+    @property
+    def bunch_count(self):
+        """ (1/ha/mo). """
+
+        N = self._palm._days_in_month
+        r = self.bunch_count_daily
+
+        return N*r
+
+    @property
+    def bunch_weight_dry(self):
+        """ (kg_DM/bunch). """
+        
+        if self._bunches:
+
+            total_mass = sum([x.mass*x.multiplicity for x in self._bunches])
+            nbunches = sum([x.multiplicity for x in self._bunches])
+
+            return total_mass/nbunches
+        else:
+            return 0
 
     @property
     def bunch_weight(self):
-        """(kg_DM/bunch)"""
-        if self.bunch_count == 0:
-            return 0
-        else:
-            N = self.bunch_count
+        """ (kg_FM/bunch). """
+        
+        c = self.parameters['bunch_FM_to_DM_ratio']['value']
 
-            # harvestible mass --- every dt days
-            total_mass = sum([x.mass*x.multiplicity for x in self._bunches])
-
-            if N > 0:
-                return total_mass/(N*self._dt)
-            else:
-                return 0
+        return c*self.bunch_weight_dry
 
     # @property
     # def bunch_weight_fresh(self):
@@ -521,6 +579,16 @@ class Cohorts(object):
         # a decreasing sigmoid
 
         return (1-va)*1/(1 + np.exp(k*(t-t0))) + va
+
+    def calc_female_fraction_decrease(self, x):
+
+        a = self.parameters['stress_female_fraction_asymptote']['value']
+        s = self.parameters['stress_female_fraction_increase']['value']
+        x0 = self.parameters['stress_female_fraction_x0']['value']
+        
+        stress_effect = 1 - a*(1/(1 + exp(-4*s*(x-x0)/a))) + a*(1/(1 + exp(-4*s*(0-x0)/a)))
+
+        return stress_effect
 
     @property
     def female_fraction(self):

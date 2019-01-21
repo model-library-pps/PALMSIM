@@ -7,8 +7,231 @@ import numpy as np
 
 from .helpers import add_dumps
 
+
 @add_dumps
-class IRHOSoil(object):
+class SoilMixin(object):
+    ''' '''
+
+    parameters = yaml.load('''
+
+    water_holding_capacity:
+        value: 500.
+        unit: 'mm'
+        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+        source: 'Input: soil/root characteristic.'
+
+    high_ET:
+        value: 5
+        unit: 'mm/day'
+        info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
+        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+        error: 0
+
+    low_ET:
+        value: 4
+        unit: 'mm/day'
+        info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
+        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+        error: 0
+
+    relative_transpiration_rate_x0:
+        value: 0.2
+        unit: '1'
+        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+
+    relative_transpiration_rate_b:
+        value: 0.1
+        unit: '1'
+        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+    ''')
+
+    initial_values = yaml.load('''
+
+    available_water:
+        value: 300
+        error: 0
+        unit: 'mm'
+        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+        source: 'Initial value - set by user.'
+
+    ''')
+
+    units = yaml.load('''
+
+        available_water                   : 'mm'
+        drainage                          : 'mm/day'
+        conversion_efficiency_limiter     : '1'
+        water_deficit                     : 'mm'
+        water_contained                   : 'mm'
+        rainfall                          : 'mm/day'
+        critical_deficit_exceedance       : 'mm'
+        critical_deficit                  : 'mm'
+        ET_monthly_potential              : 'mm'
+        moisture_content                  : '1'
+        relative_transpiration_rate       : '1'
+        water_holding_capacity            : 'mm'
+        available_water_change_rate       : 'mm/day'
+        evapotranspiration                : 'mm/day'
+        evapotranspiration_potential      : 'mm/day'
+
+    ''')
+
+    _prefix = 'soil'
+
+    def __init__(self,palm=None):
+
+        self._palm = palm
+
+        self.available_water = self.initial_values['available_water']['value']
+
+        # implemented for proto-typing purposes. See associated properties.
+        self._rainfall_ = 120
+
+    #~~~~~~~~~~~~~~~~
+
+    @property
+    def _weather(self):
+        ''' A reference to the weather. '''
+        if self._palm is None:
+            return None
+        else:
+            return self._palm.weather
+
+    @property
+    def rainfall(self):
+        ''' Rainfall (mm/day). '''
+        if self._weather is None:
+            return self._rainfall_
+        else:
+            return self._weather.rainfall
+
+    #~~~~~~~~~~~~~~~~
+
+    @property
+    def water_holding_capacity(self):
+        '''The water holding capacity of the soil.
+
+        The amount of water freed when moving
+        from the water holding capacity
+        to the permanent wilting point.
+        '''
+
+        c = self.parameters['water_holding_capacity']['value']
+
+        return c
+
+    @property
+    def moisture_content(self):
+        ''' The available water : water holding capacity ratio (1). '''
+        AW = self.available_water
+        AWC = self.water_holding_capacity
+        
+        return AW/AWC
+
+    #~~~~~~~~~~~~~~~~
+
+    def update(self, dt=1):
+        ''' Update by dt days. '''
+
+        for i in range(dt):
+            self._update(dt=1)
+            
+    def _update(self, dt=1):
+        ''' Update by dt days. '''
+
+        self.available_water += self.available_water_change_rate*dt
+
+        assert self.available_water >= 0
+
+    #~~~~~~~~~~~~~~~~
+
+    @property
+    def available_water_change_rate(self):
+        ''' Rate with which the water held changes (mm/day).
+
+        Follows from the sum of rainfall_monthly (P),
+        ET_monthly (ET) and drainage_monthly (D):
+
+            d/dt(AW) = P - ET - D
+        '''
+
+        P = self.rainfall
+        ET = self.evapotranspiration
+        D = self.drainage
+
+        return P-ET-D
+
+    #~~~~~~~~~~~~~~~~
+
+    @property
+    def evapotranspiration(self):
+        ''' Actual evapotransipiration (ET) rate (mm/day). '''
+        return self.relative_transpiration_rate*self.evapotranspiration_potential
+
+    @property
+    def relative_transpiration_rate(self):
+        ''' The relative transpiration rate (1).
+
+        A value of 1 corresponds to potential transpiration.
+        A (extreme) value of 0 corresponds to no transpiration.
+        '''
+
+        rel_AW = self.moisture_content
+
+        return self.calc_relative_transpiration_rate(rel_AW)
+
+    def calc_relative_transpiration_rate(self, rel_AW):
+        ''' The relative transpiration rate (1).
+
+        A value of 1 corresponds to potential transpiration.
+        A (extreme) value of 0 corresponds to no transpiration.
+        '''
+        
+        a = self.parameters['relative_transpiration_rate_x0']['value']
+        b = self.parameters['relative_transpiration_rate_b']['value']
+
+        # ET reduces with rel. lack of AW
+        return 1/(1+np.exp(-(rel_AW-a)/b))
+
+    @property
+    def drainage(self):
+        ''' Drainage rate (mm/day).
+
+        Here taken broadly as any process bringing the
+        water level to the water holding capacity:
+        run-off, percolation, etc.
+        '''
+
+        AW = self.available_water
+        P = self.rainfall
+        ET = self.evapotranspiration
+
+        AW_potential = AW + (P-ET)
+
+        AWC = self.water_holding_capacity
+
+        # any AW > AWC := drainage
+        D_potential = AW_potential - AWC
+
+        # D >= 0
+        return max(0., D_potential)
+
+    #~~~~~~~~~~~~
+
+    @property
+    def water_deficit(self):
+        ''' The water deficit (mm).
+
+        Follows by subtracting the available water (mm) from the
+        the soil water holding capacity (mm).
+        '''
+
+        return max(0.,self.water_holding_capacity-self.available_water)
+
+@add_dumps
+class IRHOSoil(SoilMixin):
     ''' IRHO* soil water deficit model.
 
     Describes the state of the soil of the field.
@@ -133,16 +356,6 @@ class IRHOSoil(object):
         self._raindays_ = 15
         self._rainfall_ = 120
 
-    #~~~~~~~~~~~~~~~~
-
-    @property
-    def _weather(self):
-        ''' A reference to the weather. '''
-        if self._palm is None:
-            return None
-        else:
-            return self._palm.weather
-
     @property
     def raindays(self):
         ''' Number of "days with rain" (days/month). '''
@@ -150,77 +363,6 @@ class IRHOSoil(object):
             return self._raindays_
         else:
             return self._weather.raindays
-
-    @property
-    def rainfall(self):
-        ''' Rainfall (mm/day). '''
-        if self._weather is None:
-            return self._rainfall_
-        else:
-            return self._weather.rainfall
-
-    #~~~~~~~~~~~~~~~~
-
-    @property
-    def water_holding_capacity(self):
-        '''The water holding capacity of the soil.
-
-        The amount of water freed when moving
-        from the water holding capacity
-        to the permanent wilting point.
-        '''
-
-        c = self.parameters['water_holding_capacity']['value']
-
-        return c
-
-    @property
-    def moisture_content(self):
-        ''' The available water : water holding capacity ratio (1). '''
-        AW = self.available_water
-        AWC = self.water_holding_capacity
-        
-        return AW/AWC
-
-    #~~~~~~~~~~~~~~~~
-
-    def update(self, dt=1):
-        ''' Update by dt days. '''
-
-        for i in range(dt):
-            self._update(dt=1)
-            
-    def _update(self, dt=1):
-        ''' Update by dt days. '''
-
-        self.available_water += self.available_water_change_rate*dt
-
-        assert self.available_water >= 0
-
-    #~~~~~~~~~~~~~~~~
-
-    @property
-    def available_water_change_rate(self):
-        ''' Rate with which the water held changes (mm/day).
-
-        Follows from the sum of rainfall_monthly (P),
-        ET_monthly (ET) and drainage_monthly (D):
-
-            d/dt(AW) = P - ET - D
-        '''
-
-        P = self.rainfall
-        ET = self.evapotranspiration
-        D = self.drainage
-
-        return P-ET-D
-
-    #~~~~~~~~~~~~~~~~
-
-    @property
-    def evapotranspiration(self):
-        ''' Actual evapotransipiration (ET) rate (mm/day). '''
-        return self.relative_transpiration_rate*self.evapotranspiration_potential
 
     @property
     def evapotranspiration_potential(self):
@@ -240,69 +382,78 @@ class IRHOSoil(object):
 
         return res
 
-    @property
-    def relative_transpiration_rate(self):
-        ''' The relative transpiration rate (1).
-
-        A value of 1 corresponds to potential transpiration.
-        A (extreme) value of 0 corresponds to no transpiration.
-        '''
-
-        rel_AW = self.moisture_content
-
-        return self.calc_relative_transpiration_rate(rel_AW)
-
-    def calc_relative_transpiration_rate(self, rel_AW):
-        ''' The relative transpiration rate (1).
-
-        A value of 1 corresponds to potential transpiration.
-        A (extreme) value of 0 corresponds to no transpiration.
-        '''
-        
-        a = self.parameters['relative_transpiration_rate_x0']['value']
-        b = self.parameters['relative_transpiration_rate_b']['value']
-
-        # ET reduces with rel. lack of AW
-        return 1/(1+np.exp(-(rel_AW-a)/b))
-
-    @property
-    def drainage(self):
-        ''' Drainage rate (mm/day).
-
-        Here taken broadly as any process bringing the
-        water level to the water holding capacity:
-        run-off, percolation, etc.
-        '''
-
-        AW = self.available_water
-        P = self.rainfall
-        ET = self.evapotranspiration
-
-        AW_potential = AW + (P-ET)
-
-        AWC = self.water_holding_capacity
-
-        # any AW > AWC := drainage
-        D_potential = AW_potential - AWC
-
-        # D >= 0
-        return max(0., D_potential)
-
-    #~~~~~~~~~~~~
-
-    @property
-    def water_deficit(self):
-        ''' The water deficit (mm).
-
-        Follows by subtracting the available water (mm) from the
-        the soil water holding capacity (mm).
-        '''
-
-        return max(0.,self.water_holding_capacity-self.available_water)
-
-
 @add_dumps
-class PenmanSoil(IRHOSoil):
+class PenmanSoil(SoilMixin):
+    ''' '''
+
+    parameters = yaml.load('''
+
+    water_holding_capacity:
+        value: 500.
+        unit: 'mm'
+        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+        source: 'Input: soil/root characteristic.'
+
+    high_ET:
+        value: 5
+        unit: 'mm/day'
+        info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
+        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+        error: 0
+
+    low_ET:
+        value: 4
+        unit: 'mm/day'
+        info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
+        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+        error: 0
+
+    relative_transpiration_rate_x0:
+        value: 0.5
+        unit: '1'
+        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+
+    relative_transpiration_rate_b:
+        value: 0.15
+        unit: '1'
+        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+    ''')
+
+    initial_values = yaml.load('''
+
+    available_water:
+        value: 300
+        error: 0
+        unit: 'mm'
+        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+        source: 'Initial value - set by user.'
+
+    ''')
+
+    units = yaml.load('''
+
+        available_water                   : 'mm'
+        drainage                          : 'mm/day'
+        conversion_efficiency_limiter     : '1'
+        water_deficit                     : 'mm'
+        water_contained                   : 'mm'
+        raindays                          : 'days/month'
+        rainfall                          : 'mm/day'
+        critical_deficit_exceedance       : 'mm'
+        critical_deficit                  : 'mm'
+        ET_monthly_potential              : 'mm'
+        moisture_content                  : '1'
+        relative_transpiration_rate       : '1'
+        water_holding_capacity            : 'mm'
+        available_water_change_rate       : 'mm/day'
+        evapotranspiration                : 'mm/day'
+        evapotranspiration_potential      : 'mm/day'
+
+    ''')
+
+    _prefix = 'soil'
 
     @property
     def evapotranspiration_potential(self):
@@ -314,6 +465,7 @@ class PenmanSoil(IRHOSoil):
             return 0
         else:
             return parent.ET_potential
+
 
 Soil = PenmanSoil
 

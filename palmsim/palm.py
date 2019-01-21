@@ -293,15 +293,16 @@ class PalmField():
         self.time += _dt
 
         self.weather.update()
-
-        self.soil.update(dt=dt)
         self.assimilates.update()
+        
         self.management.update()
         self.fronds.update(dt=dt)
         self.trunk.update(dt=dt)
         self.roots.update(dt=dt)
 
         self.generative.update(dt=dt)
+
+        self.soil.update(dt=dt)
 
     #########################
     # Mass: alternative units
@@ -316,11 +317,6 @@ class PalmField():
     def mass_vegetative(self):
         ''' The mass of all the vegetative parts together (t DM/ha). '''
         return self.fronds.mass + self.trunk.mass + self.roots.mass
-
-    @property
-    def yield_DM(self):
-        ''' The dry-matter bunch yield (t DM/ha/month). '''
-        return self.generative.bunch_production
 
     @property
     def mass_generative(self):
@@ -341,7 +337,6 @@ class PalmField():
     def fronds_mass_per_palm(self):
         ''' The mean mass of the palm fronds (kg). '''
         return 1000*self.fronds.mass/self.planting_density
-
 
     def run(self, duration=30*365):
 

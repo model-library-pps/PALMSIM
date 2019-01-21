@@ -188,7 +188,7 @@ class Fronds(object):
         uncertainty: 5%
 
     asymptotic_photosynthesis_rate:
-        value: 600
+        value: 750
         unit: 'ug_CO2/m2/s'
         info: 'Co-determines the light response (g CH2O/m2/s) curve, the maximum value.'
         source: 'Gerritsma, W., 1988. 

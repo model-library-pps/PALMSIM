@@ -4,3 +4,8 @@ Derive maintenance respiration coefficients from tissue N content and mineral co
 Automatically track changes in model behaviour over time; generate model bevahiour graph with one “build” command
 Estimate fraction PAR in the radiation more accurately - ~.45 on a sunny day, ~.55 on a cloudy day.
 Run duration specced in years instead of days.
+Add a delay between stress response and response impact: abortion trigger results in abortion after some time.
+
+Todos
+
+Clean up source code: add docstrings, etc.

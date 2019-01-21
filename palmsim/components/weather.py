@@ -111,19 +111,19 @@ class Weather(object):
         self._palm = palm
 
         self.radiation_series = None
-        self.raindays_series  = None
         self.rainfall_series  = None
+        self.humidity_series = None
 
         # Mean values - used
         # at times if no time-series data is available.
         self._radiation_series_mean = None
-        self._raindays_series_mean = None
         self._rainfall_series_mean = None
+        self._humidity_series_mean = None
 
         # Mock-up values - only used in prototyping/testing
         self._radiation_series_mean_ = 20
-        self._raindays_series_mean_ = 14
         self._rainfall_series_mean_ = 150
+        self._humidity_series_mean_ = 86
         self._latitude_ = 0
         self._DOY_ = 1
 
@@ -178,81 +178,12 @@ class Weather(object):
             raise ValueError
 
     @property
-    def rainfall(self):
-        """Monthly rainfall (mm/mo). """
-        t = self._date_tuple
-        s = self.rainfall_series
-        if (t and s) and (t in s):
-            return s[t]
-        else:
-            return self.rainfall_series_mean
-
-    @property
-    def raindays(self):
-        """Monthly raindays (1). """
-        t = self._date_tuple
-        s = self.raindays_series
-        if (t and s) and (t in s):
-            return s[t]
-        else:
-            return self.raindays_series_mean
-
-    #~~~~~~~~~~~~~~~~~~~
-
-    @property
-    def rainfall_series(self):
-        """Monthly rainfall (mm/mo) time-series.
-
-        A dict with a (year,month)-tuple keys and float values.
-        """
-        return self._rainfall_series
-
-    @property
     def radiation_series(self):
         """ Mean monthly visible radiation (MJ/m2/day) - time-series.
 
         A dict with a (year,month)-tuple keys and float values.
         """
         return self._radiation_series
-
-    @property
-    def raindays_series(self):
-        """Monthly raindays (1) - time-series.
-
-        A dict with a (year,month)-tuple keys and float values.
-        """
-        return self._raindays_series
-
-    #~~~~~~~~~~~~~~~~~~~
-
-    @rainfall_series.setter
-    def rainfall_series(self,series):
-        """ Sets the monthly rainfall time-series variable.
-
-        Expects a date-time indexed time-series e.g.
-        2007-01-01 00:00:00 - 120
-
-        Furthermore, sets the all-time mean rainfall -
-        used by default in case of missing values.
-        """
-
-        if series is None:
-
-            self._rainfall_series = None
-            self._rainfall_series_mean = None
-
-        elif isinstance(series, pd.Series):
-
-            # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
-
-            self._rainfall_series = d
-            self._rainfall_series_mean = float(series.mean())
-
-        else:
-
-            print(type(rseries))
-            raise ValueError('Input a time-series.')
 
     @radiation_series.setter
     def radiation_series(self,series):
@@ -283,37 +214,6 @@ class Weather(object):
             print(type(series))
             raise ValueError('Input a time-series.')
 
-    @raindays_series.setter
-    def raindays_series(self,series):
-        """ Sets the monthly raindays time-series variable.
-
-        Expects a date-time indexed time-series e.g.
-        2007-01-01 00:00:00 - 12
-
-        Furthermore, sets the all-time mean number of raindays -
-        used by default in case of missing values.
-        """
-
-        if series is None:
-
-            self._raindays_series = None
-            self._raindays_series_mean = None
-
-        elif isinstance(series, pd.Series):
-
-            # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
-
-            self._raindays_series = d
-            self._raindays_series_mean = float(series.mean())
-
-        else:
-
-            print(type(series))
-            raise ValueError('Input a time-series.')
-
-    #~~~~~~~~~~~~~~~~~~~
-
     @property
     def radiation_series_mean(self):
         """ The all-time mean of the mean-monthly radiation (MJ/m2/day). """
@@ -321,6 +221,62 @@ class Weather(object):
             return self._radiation_series_mean
         else:
             return self._radiation_series_mean_
+
+    # --------------------------------------
+
+    @property
+    def rainfall(self):
+        """Monthly rainfall (mm/mo). """
+        t = self._date_tuple
+        s = self.rainfall_series
+        if (t and s) and (t in s):
+            return s[t]
+        else:
+            return self.rainfall_series_mean
+
+    @rainfall.setter
+    def rainfall(self, value):
+
+        if isinstance(value, (int, float)):
+            self._rainfall_series_mean_ = value
+        else:
+            raise ValueError
+
+    @property
+    def rainfall_series(self):
+        """Monthly rainfall (mm/mo) time-series.
+
+        A dict with a (year,month)-tuple keys and float values.
+        """
+        return self._rainfall_series
+
+    @rainfall_series.setter
+    def rainfall_series(self,series):
+        """ Sets the monthly rainfall time-series variable.
+
+        Expects a date-time indexed time-series e.g.
+        2007-01-01 00:00:00 - 120
+
+        Furthermore, sets the all-time mean rainfall -
+        used by default in case of missing values.
+        """
+
+        if series is None:
+
+            self._rainfall_series = None
+            self._rainfall_series_mean = None
+
+        elif isinstance(series, pd.Series):
+
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+
+            self._rainfall_series = d
+            self._rainfall_series_mean = float(series.mean())
+
+        else:
+            print(type(rseries))
+            raise ValueError('Input a time-series.')
 
     @property
     def rainfall_series_mean(self):
@@ -330,13 +286,73 @@ class Weather(object):
         else:
             return self._rainfall_series_mean_
 
+
+    #~~~~~~~~~~~~~~~~~~~
+
     @property
-    def raindays_series_mean(self):
-        """ The all-time mean of the monthly raindays (1/mo). """
-        if self._raindays_series_mean:
-            return self._raindays_series_mean
+    def humidity(self):
+        """ Humidity (%). """
+        t = self._date_tuple
+        s = self.humidity_series
+        if (t and s) and (t in s):
+            return s[t]
         else:
-            return self._raindays_series_mean_
+            return self.humidity_series_mean
+
+    @humidity.setter
+    def humidity(self, value):
+
+        if isinstance(value, (int, float)):
+            self._humidity_series_mean_ = value
+        else:
+            raise ValueError
+
+    @property
+    def humidity_series(self):
+        """ Humidity (%).
+
+        A dict with a (year,month)-tuple keys and float values.
+        """
+        return self._humidity_series
+
+    @humidity_series.setter
+    def humidity_series(self,series):
+        """ Sets the time-series variable.
+
+        Expects a date-time indexed time-series e.g.
+        2007-01-01 00:00:00 - 12
+
+        Furthermore, sets the all-time mean value -
+        used by default in case of missing values.
+        """
+
+        if series is None:
+
+            self._humidity_series = None
+            self._humidity_series_mean = None
+
+        elif isinstance(series, pd.Series):
+
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+
+            self._humidity_series = d
+            self._humidity_series_mean = float(series.mean())
+
+        else:
+
+            print(type(series))
+            raise ValueError('Input a time-series.')
+
+    @property
+    def humidity_series_mean(self):
+        """ Humidity (%). """
+        if self._humidity_series_mean:
+            return self._humidity_series_mean
+        else:
+            return self._humidity_series_mean_
+
+    # --------------------------------
 
     @property
     def temperature(self):
@@ -348,7 +364,7 @@ class Weather(object):
     def relative_humidity(self):
         """ (1) """
     
-        return .86
+        return 0.01*self.humidity
 
     @property
     def windspeed(self):
