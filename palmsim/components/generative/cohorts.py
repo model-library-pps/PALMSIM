@@ -434,7 +434,7 @@ class Female(Cohort):
             uncertainty: 10%
 
         stress_inflorescence_abortion:
-            value: 0
+            value: 1
 
         stress_bunch_failure:
             value: 1
@@ -447,7 +447,7 @@ class Female(Cohort):
             uncertainty: 10%
 
         stress_inflorescence_abortion_increase:
-            value: 0.2
+            value: 0.03
             unit: '1/day'
             info: 'The increase in infloresence abortion per unit increase of the stress index.'
             source: 'Calibration.'
@@ -525,17 +525,6 @@ class Female(Cohort):
             return parent.stress_index
 
     @property
-    def _stress_index_bunch_failure(self):
-        """ . """
-    
-        parent = self._container
-    
-        if parent is None:
-            return 0
-        else:
-            return parent.stress_index_bunch_failure
-
-    @property
     def abortion_fraction(self):
         """ The monthly abortion fraction (1/month). """
         return self.inflorescence_abortion_fraction + self.bunch_failure_fraction
@@ -596,7 +585,7 @@ class Female(Cohort):
     def _bunch_failure_fraction(self):
         """ The bunch failure fraction (1/day). """    
 
-        driver = self._stress_index_bunch_failure
+        driver = self._stress_index
 
         a = self.parameters['stress_bunch_failure_asymptote']['value']
         s = self.parameters['stress_bunch_failure_increase']['value']

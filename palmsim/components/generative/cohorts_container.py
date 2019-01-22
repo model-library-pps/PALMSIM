@@ -161,12 +161,6 @@ class Cohorts(object):
         # harvested cohorts
         self._bunches = []
 
-        #
-        dt = self._dt
-        N = int(10/dt)
-
-        self.stress_memory = deque([0 for x in range(N)], maxlen=N)
-
     @property
     def t_maturity(self):
 
@@ -175,7 +169,7 @@ class Cohorts(object):
         # 1080  @ 12--17 YAP
         # 1240  @ 22 YAP
 
-        a1 = 1240
+        a1 = 1400
         a0 = 700
         s = 34
         x0 = 10
@@ -211,14 +205,6 @@ class Cohorts(object):
     def stress_index(self):
         """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
         return 1 - self.Ic
-
-    @property
-    def stress_index_bunch_failure(self):
-        """ An indicator of plant stress (1) linked to bunch failure. 
-        
-        Tries to take into account the delay between stress and bunch failure itself.
-        """
-        return self.stress_memory[-1]
 
     @property
     def _DAP(self):
@@ -325,10 +311,6 @@ class Cohorts(object):
 
         # Calculated in the PalmSim's "assimilates" object.
         self.assim_growth = self.get_assim_growth()
-
-        # Update the memory of past stress
-        stress = self.stress_index
-        self.stress_memory.appendleft(stress)
 
         # Update existing cohorts:
         #   - update each cohort

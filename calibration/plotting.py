@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
+import os
+
 def smoothen(s, rolling=True, window=3):
 
     sm = s.astype('float').resample('M').mean()
@@ -12,7 +14,7 @@ def smoothen(s, rolling=True, window=3):
 
     return sm
 
-def make_overview(df, dfo, sname='filename', window=3):
+def make_overview(df, dfo, sname='filename', fdir='plots', window=3):
 
     plt.figure(figsize=(10,8))
 
@@ -34,9 +36,16 @@ def make_overview(df, dfo, sname='filename', window=3):
     sm = smoothen(df['generative_FFB_production (t/ha/yr)'],window=window)
     so = smoothen(12*1000*dfo['Y (t/ha/mo)'],window=window)
 
-    sm.plot(ax=ax, label='model', c=cm)
+    sm.loc[:'2019'].plot(ax=ax, label='model', c=cm)
     so.plot(ax=ax, label='observed', c=co)
+
+    ix = so.index
+
+    ax.axhline(sm.mean(), c=cm, ls='dashed')
+    ax.axhline(so.mean(), c=co, ls='dashed')
+
     ax.set_ylabel('FFB (kg/ha/yr)')
+    ax.set_xlabel(None)
 
     ax = ax01
 
@@ -50,9 +59,10 @@ def make_overview(df, dfo, sname='filename', window=3):
     sm = smoothen(df['generative_bunch_weight (kg)'],window=window)
     so = smoothen(dfo['ABW (kg)'],window=window)
 
-    sm.plot(ax=ax, label='model', c=cm)
+    sm.loc[:'2019'].plot(ax=ax, label='model', c=cm)
     so.plot(ax=ax, label='observed', c=co)
     ax.set_ylabel('ABW (kg)')
+    ax.set_xlabel(None)
 
     ax = ax11
 
@@ -66,9 +76,10 @@ def make_overview(df, dfo, sname='filename', window=3):
     sm = smoothen(df['generative_bunch_count (1/ha/mo)'],window=window)
     so = smoothen(dfo['BC (1/ha/mo)'],window=window)
 
-    sm.plot(ax=ax, label='model', c=cm)
+    sm.loc[:'2019'].plot(ax=ax, label='model', c=cm)
     so.plot(ax=ax, label='observed', c=co)
     ax.set_ylabel('BC (1/ha/mo)')
+    ax.set_xlabel(None)
 
     ax = ax21
 
@@ -79,8 +90,10 @@ def make_overview(df, dfo, sname='filename', window=3):
 
     plt.tight_layout()
 
-    print('Saving as: {:}.png'.format(sname))
-    plt.savefig('{:}.png'.format(sname), dpi=300)
+    fp = os.path.join(fdir,sname)
+
+    print('Saving at: {:}.png'.format(fp))
+    plt.savefig('{:}.png'.format(fp), dpi=300)
 
 def compare(sm, so, ax=None):
 

@@ -1,0 +1,10 @@
+src,fname-yield,fname-weather,yop,density,comments,soil-depth,Distance-weather-station
+Sinarmas,Kule-1986.csv,KULE,1986,143,Sandy Clay Loam,> 100 cm,?
+Sinarmas,Pbne-1986.csv,PBNE,1986,143,Sandy Clay Loam,> 100 cm,?
+Sinarmas,Knde-1993.csv,KNDE,1993,136,Sandy Clay Loam,> 150 cm,20
+Sinarmas,Nsae-1994.csv,NSAE,1994,136,Sandy Loam,> 300 cm,22
+Sinarmas,Mtwe-1996.csv,MTWE,1996,143,Sandy Clay Loam,> 100 cm,150
+Sinarmas,Sbye-1992.csv,SBYE,1992,143,Sandy Clay Loam,> 120 cm,?
+Sinarmas,Mwhe-1993.csv,MWHE,1993,136,Silt Clay Loam,> 100 cm,?
+Sinarmas,Hnae-1995.csv,HNAE,1995,136,Sandy Clay loam,> 150 cm,27
+Sinarmas,Ssre-1998.csv,SSRE,1998,136,Sandy loam,> 150 cm,18
