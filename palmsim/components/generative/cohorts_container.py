@@ -3,6 +3,7 @@ from ..helpers import add_dumps
 from ..helpers import sigmoid
 
 from .cohorts import Indeterminate
+from collections import deque
 
 import yaml
 import numpy as np
@@ -31,7 +32,7 @@ class Cohorts(object):
             value: .90
 
         stress_female_fraction_asymptote:
-            value: 0.5
+            value: 0.6
             unit: '1'
             info: 'The maximum relative decrease in the female fraction due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
@@ -45,7 +46,7 @@ class Cohorts(object):
             uncertainty: 10%
 
         stress_female_fraction_x0:
-            value: 0.5
+            value: 0.1
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
@@ -157,26 +158,33 @@ class Cohorts(object):
         # pool of cohorts marked for deletion
         self.to_delete = []
 
+        # harvested cohorts
         self._bunches = []
+
+        #
+        dt = self._dt
+        N = int(10/dt)
+
+        self.stress_memory = deque([0 for x in range(N)], maxlen=N)
 
     @property
     def t_maturity(self):
 
         t = self._DAP/365
 
-        a1 = 1180
-        a0 = 840
+        # 1080  @ 12--17 YAP
+        # 1240  @ 22 YAP
+
+        a1 = 1240
+        a0 = 700
         s = 34
         x0 = 10
 
         d = a1-a0
 
-        rise = d*(1/(1 + exp(-4*s*(t-x0)/d)))
-    
-        1080 # @ 12--17 YAP
-        1180 # @ 22 YAP
+        rise = d*(1/(1 + exp(-4*s*(t-x0)/d)))       
 
-        return a0 + rise        
+        return a0 + rise #1080      
 
     @property
     def _dt(self):
@@ -197,12 +205,20 @@ class Cohorts(object):
         else:
             res = self.assim_growth/self.potential_sink_strength
 
-        return res
+        return min(1, res)
 
     @property
     def stress_index(self):
         """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
         return 1 - self.Ic
+
+    @property
+    def stress_index_bunch_failure(self):
+        """ An indicator of plant stress (1) linked to bunch failure. 
+        
+        Tries to take into account the delay between stress and bunch failure itself.
+        """
+        return self.stress_memory[-1]
 
     @property
     def _DAP(self):
@@ -309,6 +325,10 @@ class Cohorts(object):
 
         # Calculated in the PalmSim's "assimilates" object.
         self.assim_growth = self.get_assim_growth()
+
+        # Update the memory of past stress
+        stress = self.stress_index
+        self.stress_memory.appendleft(stress)
 
         # Update existing cohorts:
         #   - update each cohort

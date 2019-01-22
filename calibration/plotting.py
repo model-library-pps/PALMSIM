@@ -16,7 +16,7 @@ def make_overview(df, dfo, sname='filename', window=3):
 
     plt.figure(figsize=(10,8))
 
-    gs = GridSpec(3, 3)
+    gs = GridSpec(3, 4)
     ax00 = plt.subplot(gs[0, :-1])
     ax01 = plt.subplot(gs[0, -1])
 
@@ -40,10 +40,10 @@ def make_overview(df, dfo, sname='filename', window=3):
 
     ax = ax01
 
-    try:
-        compare(sm, so, ax)
-    except:
-        pass
+    # try:
+    #     compare(sm, so, ax)
+    # except:
+    #     pass
 
     ax = ax10
 
@@ -55,10 +55,11 @@ def make_overview(df, dfo, sname='filename', window=3):
     ax.set_ylabel('ABW (kg)')
 
     ax = ax11
-    try:
-        compare(sm, so, ax)
-    except:
-        pass
+
+    # try:
+    #     compare(sm, so, ax)
+    # except:
+    #     pass
 
     ax = ax20
 
@@ -71,10 +72,10 @@ def make_overview(df, dfo, sname='filename', window=3):
 
     ax = ax21
 
-    try:
-        compare(sm, so, ax)
-    except:
-        pass
+    # try:
+    #     compare(sm, so, ax)
+    # except:
+    #     pass
 
     plt.tight_layout()
 

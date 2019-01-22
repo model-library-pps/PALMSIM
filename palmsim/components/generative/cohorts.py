@@ -214,7 +214,7 @@ class Indeterminate(Cohort):
     parameters = yaml.load("""
 
         t_differentiation:
-            value: 0.15
+            value: 0.2
             unit: '1'
             info: 'The time of sex differentiation relative to
                     the duration of the total female phenological cycle.'
@@ -383,25 +383,25 @@ class Female(Cohort):
     parameters = yaml.load("""
 
         inflorescence_abortion_t0:
-            value: .79
+            value: .75
             unit: '1'
             info: 'The point in the phenological cycle at which inflorescence abortion starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         inflorescence_abortion_dt:
-            value: 0.04
+            value: 0.03
             unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_t0:
-            value: .90
+            value: .92
             unit: '1'
             info: 'The point in the phenological cycle at which bunch failure starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         bunch_failure_dt:
-            value: 0.04
+            value: 0.03
             unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
@@ -413,48 +413,48 @@ class Female(Cohort):
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
 
         stress_bunch_failure_asymptote:
-            value: 0.08
+            value: 0.015
             unit: '1/day'
             info: 'The maximum bunch failure due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_bunch_failure_increase:
-            value: 0.18
+            value: 0.04
             unit: '1'
             info: 'The increase in bunch failure per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
 
         stress_bunch_failure_x0:
-            value: 0.6
+            value: 0.2
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
 
         stress_inflorescence_abortion:
-            value: 1
+            value: 0
 
         stress_bunch_failure:
             value: 1
 
         stress_inflorescence_abortion_asymptote:
-            value: 0.08
+            value: 0.01
             unit: '1/day'
             info: 'The maximum infloresence abortion due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
 
         stress_inflorescence_abortion_increase:
-            value: 0.15
+            value: 0.2
             unit: '1/day'
             info: 'The increase in infloresence abortion per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
 
         stress_inflorescence_abortion_x0:
-            value: 0.8
+            value: 0.2
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
@@ -516,10 +516,24 @@ class Female(Cohort):
     @property
     def _stress_index(self):
         """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
-        if self._container is None:
+    
+        parent = self._container
+    
+        if parent is None:
             return self._stress_index_
         else:
-            return self._container.stress_index
+            return parent.stress_index
+
+    @property
+    def _stress_index_bunch_failure(self):
+        """ . """
+    
+        parent = self._container
+    
+        if parent is None:
+            return 0
+        else:
+            return parent.stress_index_bunch_failure
 
     @property
     def abortion_fraction(self):
@@ -582,7 +596,7 @@ class Female(Cohort):
     def _bunch_failure_fraction(self):
         """ The bunch failure fraction (1/day). """    
 
-        driver = self._stress_index
+        driver = self._stress_index_bunch_failure
 
         a = self.parameters['stress_bunch_failure_asymptote']['value']
         s = self.parameters['stress_bunch_failure_increase']['value']
