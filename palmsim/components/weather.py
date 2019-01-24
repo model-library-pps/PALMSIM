@@ -370,7 +370,7 @@ class Weather(object):
     def windspeed(self):
         """ (m/s) """
     
-        return 1
+        return 2
 
     #---------------------------
 
@@ -543,7 +543,6 @@ class Weather(object):
         
         Source: [0] - totasc.
         """
-
 
         sinb = self.calc_sine_solar_height(hour)
 
