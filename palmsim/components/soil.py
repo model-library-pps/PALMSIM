@@ -7,6 +7,183 @@ import numpy as np
 
 from .helpers import add_dumps
 
+class PTF(object):
+    """ Translates a soil texture string to volumetric water contents; a PTF.
+    
+    Implements the translation rules of [1], uses a Van Genuchten methodology.
+    
+    Examples
+    --------
+    
+    ptf = PTF('Sand')
+    
+    Fetch shaping parameter (1/kPa)
+    
+    >>> ptf.alpha
+    0.38
+    
+    Fetch plant available water content (m3/m3)
+    
+    >>> ptf.PAWC
+    0.2
+    
+    References
+    ----------
+    [1] Hodnett, Martin & Tomasella, Javier. (2002).
+        Marked differences between van Genuchten soil water-retention
+        parameters for temperate and tropical soils:
+        A new water-retention pedo-transfer functions developed for tropical soils.
+        Geoderma. 108. 155-180. 10.1016/S0016-7061(02)00105-2. 
+
+    """
+    
+    parameter_library = yaml.load("""
+    
+    sand:
+        alpha: 0.380
+        n: 2.474
+        saturated_moisture_content: 0.410
+        residual_moisture_content: 0.037
+    loamy sand:
+        alpha: 0.837
+        n: 1.672
+        saturated_moisture_content: 0.438
+        residual_moisture_content: 0.062
+    sandy loam:
+        alpha: 0.396
+        n: 1.553
+        saturated_moisture_content: 0.461
+        residual_moisture_content: 0.111
+    loam:
+        alpha: 0.246
+        n: 1.461
+        saturated_moisture_content: 0.521
+        residual_moisture_content: 0.155
+    silty loam:
+        alpha: 0.191
+        n: 1.644
+        saturated_moisture_content: 0.601
+        residual_moisture_content: 0.223
+    sandy clay loam:
+        alpha: 0.644
+        n: 1.535
+        saturated_moisture_content: 0.413
+        residual_moisture_content: 0.149
+    clay loam:
+        alpha:  0.392
+        n: 1.437
+        saturated_moisture_content: 0.519
+        residual_moisture_content: 0.226
+    silty clay loam:
+        alpha: 0.298
+        n: 1.513
+        saturated_moisture_content: 0.586
+        residual_moisture_content: 0.267
+    silty clay:
+        alpha:  0.258
+        n: 1.466
+        saturated_moisture_content: 0.570
+        residual_moisture_content: 0.278
+    sandy clay:
+        alpha:  0.509
+        n: 1.396
+        saturated_moisture_content: 0.460
+        residual_moisture_content: 0.199
+    clay:
+        alpha: 0.463
+        n: 1.514
+        saturated_moisture_content: 0.546
+        residual_moisture_content: 0.267
+    
+    """    
+    )
+    
+    def __init__(self, texture_class = 'sand'):
+        
+        self.texture_class = texture_class
+    
+    @property
+    def options(self):
+        return list(self.parameter_library)
+    
+    @property
+    def parameters(self):
+        """ Parameters (dict) associated with a certain texture class. """
+        key = self.texture_class
+        library = self.parameter_library
+        
+        return library[key]
+        
+    @property
+    def alpha(self):
+        """  (1/kPa) """
+        return self.parameters['alpha']
+    
+    @property
+    def n(self):
+        """ (1) """
+        return self.parameters['n']
+    
+    @property
+    def m(self):
+        """ (1) """
+        return 1. - 1./self.n
+    
+    @property
+    def saturated_moisture_content(self):
+        """ (m3/m3) """
+        return self.parameters['saturated_moisture_content']
+    
+    @property
+    def residual_moisture_content(self):
+        """ (m3/m3) """
+        return self.parameters['residual_moisture_content']
+    
+    def calc_water_content(self, pressure):
+        """ Returns the volumetric water content at a certain suction pressure (m3/m3) """
+        
+        a = self.alpha
+        n = self.n
+        
+        sat = self.saturated_moisture_content
+        res = self.residual_moisture_content
+        
+        m = 1. - 1./n
+        
+        num = sat-res
+        denum = (1 + (a * pressure)**n)**m
+        
+        water_content = res + num/denum
+        
+        return water_content
+    
+    @property
+    def water_content_FC(self):
+        """ the volumetric water content (m3/m3) at -33 kPa  """
+        
+        # reference pressures - matrix potential (kPa)
+        P_ref = 10
+            
+        return self.calc_water_content(pressure=P_ref)
+    
+    @property
+    def water_content_PWP(self):
+        """ the volumetric water content (m3/m3) at -1500 kPa  """
+        
+        # reference pressures - matrix potential (kPa)
+        P_ref = 1500
+            
+        return self.calc_water_content(pressure=P_ref)
+    
+    @property
+    def plant_available_water_content(self):
+        """ The plant available volumetric water content (m3/m3).
+        
+        Defined as the difference in water content at
+        field capacity (-33 kPa) and at the permanent wilting point (-1500 kPa).
+        """
+        
+        return self.water_content_FC - self.water_content_PWP
 
 @add_dumps
 class SoilMixin(object):

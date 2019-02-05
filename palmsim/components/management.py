@@ -125,7 +125,10 @@ class Management(object):
     @property
     def planting_density(self):
         ''' The planting density (1/ha). '''
-        return self.parameters['planting_density']['value']
+        if self._palm is None:
+            return self.parameters['planting_density']['value']
+        else:
+            return self._palm.planting_density
 
     @property
     def prune_rate_mass(self):

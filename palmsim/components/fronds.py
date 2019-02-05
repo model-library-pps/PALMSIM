@@ -145,7 +145,7 @@ class Fronds(object):
         uncertainty: 5%
 
     initiation_rate_a:
-        value: 25
+        value: 24
         unit: '1/palm/year'
         info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
         source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
@@ -188,7 +188,7 @@ class Fronds(object):
         uncertainty: 5%
 
     asymptotic_photosynthesis_rate:
-        value: 750
+        value: 720
         unit: 'ug_CO2/m2/s'
         info: 'Co-determines the light response (g CH2O/m2/s) curve, the maximum value.'
         source: 'Gerritsma, W., 1988. 

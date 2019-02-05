@@ -163,11 +163,12 @@ class PalmField():
     parameters = {}
 
     def __init__(self,
-                    verbose = True,
-                    settings = None,
-                    year_of_planting = 2017,
-                    month_of_planting = 1,
-                    day_of_planting =1,
+                    verbose=True,
+                    settings=None,
+                    year_of_planting=2017,
+                    month_of_planting=1,
+                    day_of_planting=1,
+                    planting_density=141,
                     latitude = 0,
                     dt = 10):
 
@@ -176,6 +177,8 @@ class PalmField():
         self.year_of_planting = year_of_planting
         self.month_of_planting = month_of_planting
         self.day_of_planting = day_of_planting
+
+        self.planting_density = planting_density
 
         self.dt = dt
 
