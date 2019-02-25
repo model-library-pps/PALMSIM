@@ -252,17 +252,23 @@ class SoilMixin(object):
         available_water_change_rate       : 'mm/day'
         evapotranspiration                : 'mm/day'
         evapotranspiration_potential      : 'mm/day'
+        soil_depth                        : 'm'
 
     ''')
 
     _prefix = 'soil'
 
-    def __init__(self,palm=None):
+    def __init__(self,palm=None,
+                        soil_depth = None,
+                        soil_texture_class = None):
 
         self._palm = palm
 
-        self.available_water = self.initial_values['available_water']['value']
+        self.soil_depth = soil_depth
+        self.soil_texture_class = soil_texture_class
 
+        self.available_water = self.water_holding_capacity
+        
         # implemented for proto-typing purposes. See associated properties.
         self._rainfall_ = 120
 
@@ -284,20 +290,53 @@ class SoilMixin(object):
         else:
             return self._weather.rainfall
 
+    #----------------
+
+    @property
+    def soil_texture_class_options(self):
+        """ List of soil texture class options. """
+        return PTF.options
+
+    @property
+    def soil_texture_class(self):
+        """ Soil texture class eg silty clay, sandy loam. """
+        return self._soil_texture_class
+
+    @soil_texture_class.setter
+    def soil_texture_class(self, soil_texture_class):
+        """ Sets the soil texture class eg silty clay, sandy loam. """
+
+        # eg sandy loam, silty clay
+        self._soil_texture_class = soil_texture_class
+        
+        # the associated pedo-transfer-function
+        ptf = PTF(soil_texture_class)
+        
+        # m3/m3
+        self._plant_available_water_content = ptf.plant_available_water_content
+
     #~~~~~~~~~~~~~~~~
 
     @property
     def water_holding_capacity(self):
-        '''The water holding capacity of the soil.
+        '''The water holding capacity of soil in the rooting zone (mm).
 
         The amount of water freed when moving
         from the water holding capacity
         to the permanent wilting point.
         '''
 
-        c = self.parameters['water_holding_capacity']['value']
+        if self.soil_depth is not None:
 
-        return c
+            c = self._plant_available_water_content
+            d = self.soil_depth
+
+            # m --> mm via x1000
+            return 1000*c*d
+
+        else:
+            
+            return self.parameters['water_holding_capacity']['value']
 
     @property
     def moisture_content(self):
@@ -523,12 +562,17 @@ class IRHOSoil(SoilMixin):
 
     _prefix = 'soil'
 
-    def __init__(self,palm=None):
+    def __init__(self,palm=None,
+                        soil_depth = 2,
+                        soil_texture_class = 'sandy loam'):
 
         self._palm = palm
 
-        self.available_water = self.initial_values['available_water']['value']
+        self.soil_depth = soil_depth
+        self.soil_texture_class = soil_texture_class
 
+        self.available_water = self.water_holding_capacity
+        
         # implemented for proto-typing purposes. See associated properties.
         self._raindays_ = 15
         self._rainfall_ = 120

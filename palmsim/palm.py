@@ -170,6 +170,8 @@ class PalmField():
                     day_of_planting=1,
                     planting_density=141,
                     latitude = 0,
+                    soil_texture_class = 'loamy sand',
+                    soil_depth = None,
                     dt = 10):
 
         # simulation run-time is kept by instances of this class
@@ -193,7 +195,11 @@ class PalmField():
 
         # Link the sub-models
         self.weather    = Weather(self)
-        self.soil       = Soil(self)
+
+        self.soil       = Soil(self,
+                                soil_texture_class=soil_texture_class,
+                                soil_depth=soil_depth)
+        
         self.management = Management(self)
 
         # Link the sub-models
@@ -360,6 +366,8 @@ class PalmField():
         df = df.set_index(pd.to_datetime(df['date']))
 
         df = df.apply(pd.to_numeric, errors='ignore')
+
+        df['FFB_production (kg/ha/yr)'] = df['generative_FFB_production (t/ha/yr)']
 
         return df
 

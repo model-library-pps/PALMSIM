@@ -113,17 +113,23 @@ class Weather(object):
         self.radiation_series = None
         self.rainfall_series  = None
         self.humidity_series = None
+        self.temperature_series = None
+        self.windspeed_series = None
 
         # Mean values - used
         # at times if no time-series data is available.
         self._radiation_series_mean = None
         self._rainfall_series_mean = None
         self._humidity_series_mean = None
+        self._temperature_series_mean = None
+        self._windspeed_series_mean = None
 
         # Mock-up values - only used in prototyping/testing
         self._radiation_series_mean_ = 20
         self._rainfall_series_mean_ = 150
         self._humidity_series_mean_ = 86
+        self._temperature_series_mean_ = 28
+        self._windspeed_series_mean_ = 2
         self._latitude_ = 0
         self._DOY_ = 1
 
@@ -356,21 +362,139 @@ class Weather(object):
 
     @property
     def temperature(self):
-        """ Average daily temperature 2 m above earth surface (degC). """
-    
-        return 28
+        """ Temperature (deg C). """
+        t = self._date_tuple
+        s = self.temperature_series
+        if (t and s) and (t in s):
+            return s[t]
+        else:
+            return self.temperature_series_mean
+
+    @temperature.setter
+    def temperature(self, value):
+
+        if isinstance(value, (int, float)):
+            self._temperature_series_mean_ = value
+        else:
+            raise ValueError
+
+    @property
+    def temperature_series(self):
+        """ Temperature (deg C).
+
+        A dict with a (year,month)-tuple keys and float values.
+        """
+        return self._temperature_series
+
+    @temperature_series.setter
+    def temperature_series(self,series):
+        """ Sets the time-series variable.
+
+        Expects a date-time indexed time-series e.g.
+        2007-01-01 00:00:00 - 12
+
+        Furthermore, sets the all-time mean value -
+        used by default in case of missing values.
+        """
+
+        if series is None:
+
+            self._temperature_series = None
+            self._temperature_series_mean = None
+
+        elif isinstance(series, pd.Series):
+
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+
+            self._temperature_series = d
+            self._temperature_series_mean = float(series.mean())
+
+        else:
+
+            print(type(series))
+            raise ValueError('Input a time-series.')
+
+    @property
+    def temperature_series_mean(self):
+        """ Temperature (deg C). """
+        if self._temperature_series_mean:
+            return self._temperature_series_mean
+        else:
+            return self._temperature_series_mean_
+
+  # --------------------------------
+
+    @property
+    def windspeed(self):
+        """ Windspeed (m/s). """
+        t = self._date_tuple
+        s = self.windspeed_series
+        if (t and s) and (t in s):
+            return s[t]
+        else:
+            return self.windspeed_series_mean
+
+    @windspeed.setter
+    def windspeed(self, value):
+
+        if isinstance(value, (int, float)):
+            self._windspeed_series_mean_ = value
+        else:
+            raise ValueError
+
+    @property
+    def windspeed_series(self):
+        """ Windspeed (m/s).
+
+        A dict with a (year,month)-tuple keys and float values.
+        """
+        return self._windspeed_series
+
+    @windspeed_series.setter
+    def windspeed_series(self,series):
+        """ Sets the time-series variable.
+
+        Expects a date-time indexed time-series e.g.
+        2007-01-01 00:00:00 - 12
+
+        Furthermore, sets the all-time mean value -
+        used by default in case of missing values.
+        """
+
+        if series is None:
+
+            self._windspeed_series = None
+            self._windspeed_series_mean = None
+
+        elif isinstance(series, pd.Series):
+
+            # to speed up fetching the data, we make a dictionary having the time as keys
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+
+            self._windspeed_series = d
+            self._windspeed_series_mean = float(series.mean())
+
+        else:
+
+            print(type(series))
+            raise ValueError('Input a time-series.')
+
+    @property
+    def windspeed_series_mean(self):
+        """ Windspeed (m/s). """
+        if self._windspeed_series_mean:
+            return self._windspeed_series_mean
+        else:
+            return self._windspeed_series_mean_
+
+    # --------------------------------
 
     @property
     def relative_humidity(self):
         """ (1) """
     
         return 0.01*self.humidity
-
-    @property
-    def windspeed(self):
-        """ (m/s) """
-    
-        return 2
 
     #---------------------------
 
@@ -424,6 +548,9 @@ class Weather(object):
         
         """
 
+        # numerical error tolerance - see below
+        _tol = 10**6
+
         def rad(deg):
             """ Convert from degrees to radials. """
             return 2*PI*(deg/360)
@@ -440,7 +567,7 @@ class Weather(object):
         S = S0 * sinb * (1 + 0.033*cos(2*PI*(day - 10/365)))
 
         assert S >= 0
-        assert S <= S0
+        assert S <= ((1 + _tol) * S0)
 
         return S
 
@@ -605,6 +732,7 @@ class Weather(object):
         """ (mm/day).
         
         Calculated as prescribed by the FAO.
+        See http://www.fao.org/docrep/X0490E/x0490e06.htm .
         """
 
         u = self.windspeed
