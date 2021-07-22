@@ -5,4 +5,5 @@ __todo.txt
 
 # Jupyter Notebook
 .ipynb_checkpoints
+**/.ipynb_checkpoints/
 examples/**/*.html
