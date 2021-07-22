@@ -38,65 +38,62 @@ class PTF(object):
     """
     
     parameter_library = yaml.load("""
-    
-    sand:
-        alpha: 0.380
-        n: 2.474
-        saturated_moisture_content: 0.410
-        residual_moisture_content: 0.037
-    loamy sand:
-        alpha: 0.837
-        n: 1.672
-        saturated_moisture_content: 0.438
-        residual_moisture_content: 0.062
-    sandy loam:
-        alpha: 0.396
-        n: 1.553
-        saturated_moisture_content: 0.461
-        residual_moisture_content: 0.111
-    loam:
-        alpha: 0.246
-        n: 1.461
-        saturated_moisture_content: 0.521
-        residual_moisture_content: 0.155
-    silty loam:
-        alpha: 0.191
-        n: 1.644
-        saturated_moisture_content: 0.601
-        residual_moisture_content: 0.223
-    sandy clay loam:
-        alpha: 0.644
-        n: 1.535
-        saturated_moisture_content: 0.413
-        residual_moisture_content: 0.149
-    clay loam:
-        alpha:  0.392
-        n: 1.437
-        saturated_moisture_content: 0.519
-        residual_moisture_content: 0.226
-    silty clay loam:
-        alpha: 0.298
-        n: 1.513
-        saturated_moisture_content: 0.586
-        residual_moisture_content: 0.267
-    silty clay:
-        alpha:  0.258
-        n: 1.466
-        saturated_moisture_content: 0.570
-        residual_moisture_content: 0.278
-    sandy clay:
-        alpha:  0.509
-        n: 1.396
-        saturated_moisture_content: 0.460
-        residual_moisture_content: 0.199
-    clay:
-        alpha: 0.463
-        n: 1.514
-        saturated_moisture_content: 0.546
-        residual_moisture_content: 0.267
-    
-    """    
-    )
+        sand:
+            alpha: 0.380
+            n: 2.474
+            saturated_moisture_content: 0.410
+            residual_moisture_content: 0.037
+        loamy sand:
+            alpha: 0.837
+            n: 1.672
+            saturated_moisture_content: 0.438
+            residual_moisture_content: 0.062
+        sandy loam:
+            alpha: 0.396
+            n: 1.553
+            saturated_moisture_content: 0.461
+            residual_moisture_content: 0.111
+        loam:
+            alpha: 0.246
+            n: 1.461
+            saturated_moisture_content: 0.521
+            residual_moisture_content: 0.155
+        silty loam:
+            alpha: 0.191
+            n: 1.644
+            saturated_moisture_content: 0.601
+            residual_moisture_content: 0.223
+        sandy clay loam:
+            alpha: 0.644
+            n: 1.535
+            saturated_moisture_content: 0.413
+            residual_moisture_content: 0.149
+        clay loam:
+            alpha:  0.392
+            n: 1.437
+            saturated_moisture_content: 0.519
+            residual_moisture_content: 0.226
+        silty clay loam:
+            alpha: 0.298
+            n: 1.513
+            saturated_moisture_content: 0.586
+            residual_moisture_content: 0.267
+        silty clay:
+            alpha:  0.258
+            n: 1.466
+            saturated_moisture_content: 0.570
+            residual_moisture_content: 0.278
+        sandy clay:
+            alpha:  0.509
+            n: 1.396
+            saturated_moisture_content: 0.460
+            residual_moisture_content: 0.199
+        clay:
+            alpha: 0.463
+            n: 1.514
+            saturated_moisture_content: 0.546
+            residual_moisture_content: 0.267
+        """, Loader=yaml.SafeLoader)
     
     def __init__(self, texture_class = 'sand'):
         
@@ -190,53 +187,45 @@ class SoilMixin(object):
     ''' '''
 
     parameters = yaml.load('''
-
-    water_holding_capacity:
-        value: 500.
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Input: soil/root characteristic.'
-
-    high_ET:
-        value: 5
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    low_ET:
-        value: 4
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    relative_transpiration_rate_x0:
-        value: 0.2
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-
-    relative_transpiration_rate_b:
-        value: 0.1
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-    ''')
+        water_holding_capacity:
+            value: 500.
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Input: soil/root characteristic.'
+        high_ET:
+            value: 5
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        low_ET:
+            value: 4
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        relative_transpiration_rate_x0:
+            value: 0.2
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+        relative_transpiration_rate_b:
+            value: 0.1
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+        ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-
-    available_water:
-        value: 300
-        error: 0
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Initial value - set by user.'
-
-    ''')
+        available_water:
+            value: 300
+            error: 0
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Initial value - set by user.'
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         available_water                   : 'mm'
         drainage                          : 'mm/day'
         conversion_efficiency_limiter     : '1'
@@ -253,8 +242,7 @@ class SoilMixin(object):
         evapotranspiration                : 'mm/day'
         evapotranspiration_potential      : 'mm/day'
         soil_depth                        : 'm'
-
-    ''')
+        ''', Loader=yaml.SafeLoader)
 
     _prefix = 'soil'
 
@@ -358,6 +346,7 @@ class SoilMixin(object):
         ''' Update by dt days. '''
 
         self.available_water += self.available_water_change_rate*dt
+        self.available_water = max(0., self.available_water)
 
         assert self.available_water >= 0
 
@@ -494,53 +483,45 @@ class IRHOSoil(SoilMixin):
     '''
 
     parameters = yaml.load('''
-
-    water_holding_capacity:
-        value: 500.
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Input: soil/root characteristic.'
-
-    high_ET:
-        value: 5
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    low_ET:
-        value: 4
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    relative_transpiration_rate_x0:
-        value: 0.2
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-
-    relative_transpiration_rate_b:
-        value: 0.1
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-    ''')
+        water_holding_capacity:
+            value: 500.
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Input: soil/root characteristic.'
+        high_ET:
+            value: 5
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        low_ET:
+            value: 4
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        relative_transpiration_rate_x0:
+            value: 0.2
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+        relative_transpiration_rate_b:
+            value: 0.1
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+        ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-
-    available_water:
-        value: 300
-        error: 0
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Initial value - set by user.'
-
-    ''')
+        available_water:
+            value: 300
+            error: 0
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Initial value - set by user.'
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         available_water                   : 'mm'
         drainage                          : 'mm/day'
         conversion_efficiency_limiter     : '1'
@@ -557,8 +538,7 @@ class IRHOSoil(SoilMixin):
         available_water_change_rate       : 'mm/day'
         evapotranspiration                : 'mm/day'
         evapotranspiration_potential      : 'mm/day'
-
-    ''')
+    ''', Loader=yaml.SafeLoader)
 
     _prefix = 'soil'
 
@@ -608,53 +588,45 @@ class PenmanSoil(SoilMixin):
     ''' '''
 
     parameters = yaml.load('''
-
-    water_holding_capacity:
-        value: 500.
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Input: soil/root characteristic.'
-
-    high_ET:
-        value: 5
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    low_ET:
-        value: 4
-        unit: 'mm/day'
-        info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
-        source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
-        error: 0
-
-    relative_transpiration_rate_x0:
-        value: 0.5
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-
-    relative_transpiration_rate_b:
-        value: 0.15
-        unit: '1'
-        info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
-        source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
-    ''')
+        water_holding_capacity:
+            value: 500.
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Input: soil/root characteristic.'
+        high_ET:
+            value: 5
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given <= 10 raindays per month - little rain == much sun == much ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        low_ET:
+            value: 4
+            unit: 'mm/day'
+            info: 'The assumed typical ET_monthly in a palm plantation given > 10 raindays per month - much rain == little sun == little ET.'
+            source: 'Based on Surre (1968) - IRHO: Les besoins en eau du palmier huile'
+            error: 0
+        relative_transpiration_rate_x0:
+            value: 0.5
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+        relative_transpiration_rate_b:
+            value: 0.15
+            unit: '1'
+            info: 'Shapes the sigmoid (1/(1+exp(-(x-a)/b))) relation between actual to potential ET_monthly versus soil water content.'
+            source: 'Based on the relation given in Combres et al. 2013 which refers to the PhD thesis by E. Dufrene (1989).'
+            ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-
-    available_water:
-        value: 300
-        error: 0
-        unit: 'mm'
-        info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
-        source: 'Initial value - set by user.'
-
-    ''')
+        available_water:
+            value: 300
+            error: 0
+            unit: 'mm'
+            info: 'Working definition: The difference between rooting zone water content at field capacity (pF 2) and permanent wilting point (pF 4.2).'
+            source: 'Initial value - set by user.'
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         available_water                   : 'mm'
         drainage                          : 'mm/day'
         conversion_efficiency_limiter     : '1'
@@ -671,8 +643,7 @@ class PenmanSoil(SoilMixin):
         available_water_change_rate       : 'mm/day'
         evapotranspiration                : 'mm/day'
         evapotranspiration_potential      : 'mm/day'
-
-    ''')
+        ''', Loader=yaml.SafeLoader)
 
     _prefix = 'soil'
 
@@ -689,4 +660,3 @@ class PenmanSoil(SoilMixin):
 
 
 Soil = PenmanSoil
-

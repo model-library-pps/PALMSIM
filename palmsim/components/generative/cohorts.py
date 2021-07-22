@@ -26,7 +26,6 @@ class Cohort(object):
     """
 
     units = yaml.load("""
-
         age                             : 'day'
         t_differentiation               : 'day'
         assim_growth_cohort             : 'kg_CH2O/cohort/day'
@@ -50,8 +49,7 @@ class Cohort(object):
         relative_sink_strength          : '1'
         should_trigger_flowering        : 'bool'
         Ic                              : '1'
-
-    """)
+    """, Loader=yaml.SafeLoader)
 
     _name = 'Cohort'
 
@@ -212,7 +210,6 @@ class Indeterminate(Cohort):
     """ Models a cohort of indeterminate inflorescences. """
 
     parameters = yaml.load("""
-
         t_differentiation:
             value: 0.2
             unit: '1'
@@ -239,7 +236,7 @@ class Indeterminate(Cohort):
             unit: ''
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
-        """)
+        """, Loader=yaml.SafeLoader)
 
     _prefix = 'indeterminate'
     sex = 'indeterminate'
@@ -381,85 +378,72 @@ class Female(Cohort):
     _prefix = 'female'
 
     parameters = yaml.load("""
-
         inflorescence_abortion_t0:
             value: .75
             unit: '1'
             info: 'The point in the phenological cycle at which inflorescence abortion starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         inflorescence_abortion_dt:
             value: 0.03
             unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         bunch_failure_t0:
             value: .92
             unit: '1'
             info: 'The point in the phenological cycle at which bunch failure starts.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         bunch_failure_dt:
             value: 0.03
             unit: '1'
             info: 'The fraction of the phenological cycle in which inflorescence abortion occurs.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         t_anthesis:
             value: .825
             unit: '1'
             info: 'The point in the phenological cycle at which anthesis takes place.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         stress_bunch_failure_asymptote:
             value: 0.015
             unit: '1/day'
             info: 'The maximum bunch failure due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
-
         stress_bunch_failure_increase:
             value: 0.04
             unit: '1'
             info: 'The increase in bunch failure per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
-
         stress_bunch_failure_x0:
             value: 0.2
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
-
         stress_inflorescence_abortion:
             value: 1
-
         stress_bunch_failure:
             value: 1
-
         stress_inflorescence_abortion_asymptote:
             value: 0.01
             unit: '1/day'
             info: 'The maximum infloresence abortion due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
-
         stress_inflorescence_abortion_increase:
             value: 0.03
             unit: '1/day'
             info: 'The increase in infloresence abortion per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
-
         stress_inflorescence_abortion_x0:
             value: 0.2
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
-            """)
+        """, Loader=yaml.SafeLoader)
 
     sex = 'female'
     def __init__(self,container=None,
@@ -649,14 +633,12 @@ class Male(Cohort):
     _version = '0.0'
 
     parameters = yaml.load("""
-
         t_anthesis:
             value: .825
             unit: 'day'
             info: 'The point in the phenological cycle at which anthesis takes place.'
             source: 'Adam et al. 2011, see fig 3.'
-
-            """)
+            """, Loader=yaml.SafeLoader)
 
     sex = 'male'
 

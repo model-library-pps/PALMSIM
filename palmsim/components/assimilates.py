@@ -28,17 +28,14 @@ class Assimilates(object):
     """
 
     parameters = yaml.load("""
-
         vegetative_priority:
             value: .8
             unit: '1'
             info: 'The priority given to assimilates for vegetative growth -- 0: according to sink strength, 1: full priority.'
             source: 'Based on the figure found in Corley, ch. 5, p. 100 (attributed to Squire, 1990) and furthermore Legros et al. 2009.'
-
-    """)
+        """, Loader=yaml.SafeLoader)
 
     units = yaml.load("""
-
         assim_growth_fronds                : 'kg_CH2O/ha/day'
         assim_growth_generative            : 'kg_CH2O/ha/day'
         assim_growth_male                  : 'kg_CH2O/ha/day'
@@ -66,8 +63,7 @@ class Assimilates(object):
         assim_veg_growth_fraction_roots    : '1'
         assim_veg_growth_fraction_trunk    : '1'
         assim_veg_growth_fraction_fronds   : '1'
-
-    """)
+        """, Loader=yaml.SafeLoader)
 
     _prefix = 'assimilates'
 

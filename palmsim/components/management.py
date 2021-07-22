@@ -31,60 +31,52 @@ class Management(object):
     '''
 
     parameters = yaml.load('''
-
-    planting_density:
-        value: 138
-        unit: '1/ha'
-        info: 'The planting density.'
-        source: ''
-        uncertainty: 1%
-
-    prune_period:
-        value: 3
-        unit: 'month'
-        info: 'How often the site is pruned.'
-        source: 'Based on the actual schedule of an estate manager.'
-        uncertainty: 10%
-
-    first_prune_month:
-        value: 0
-        unit: 'month'
-        info: 'Which month of the year is
-                the first month of periodic pruning e.g. January -> 0th month.'
-        source: 'Choice.'
-        uncertainty: 10%
-
-    t_start_periodic_pruning:
-        value: 48
-        unit: 'month'
-        info: 'The start of the periodic pruning.
-                --- note, a work-around, read the docs of the management class.'
-        source: 'Based on pictures in the booklet
-                    Oil Palm Vegetative Measurement Manual, MPOB, 2017.'
-        uncertainty: 10%
-
-    fronds_goal_count_t0:
-        value: 50
-        unit: '1/palm'
-        info: 'The desired number of fronds for a young palm (t0=0 YAP).'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of
-                    oil palm in indonesia.'
-        uncertainty: 10%
-
-    fronds_goal_count_t1:
-        value: 40
-        unit: '1/palm'
-        info: 'The desired number of fronds for a young palm (t0=0 YAP).'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of
-                    oil palm in indonesia.'
-        uncertainty: 10%
-
-    ''')
+        planting_density:
+            value: 138
+            unit: '1/ha'
+            info: 'The planting density.'
+            source: ''
+            uncertainty: 1%
+        prune_period:
+            value: 3
+            unit: 'month'
+            info: 'How often the site is pruned.'
+            source: 'Based on the actual schedule of an estate manager.'
+            uncertainty: 10%
+        first_prune_month:
+            value: 0
+            unit: 'month'
+            info: 'Which month of the year is
+                    the first month of periodic pruning e.g. January -> 0th month.'
+            source: 'Choice.'
+            uncertainty: 10%
+        t_start_periodic_pruning:
+            value: 48
+            unit: 'month'
+            info: 'The start of the periodic pruning.
+                    --- note, a work-around, read the docs of the management class.'
+            source: 'Based on pictures in the booklet
+                        Oil Palm Vegetative Measurement Manual, MPOB, 2017.'
+            uncertainty: 10%
+        fronds_goal_count_t0:
+            value: 50
+            unit: '1/palm'
+            info: 'The desired number of fronds for a young palm (t0=0 YAP).'
+            source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of
+                        oil palm in indonesia.'
+            uncertainty: 10%
+        fronds_goal_count_t1:
+            value: 40
+            unit: '1/palm'
+            info: 'The desired number of fronds for a young palm (t0=0 YAP).'
+            source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of
+                        oil palm in indonesia.'
+            uncertainty: 10%
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         frond_count: 1/ha
         fronds_goal_count: 1/ha
         fronds_goal_count_per_palm: 1/ha
@@ -95,8 +87,7 @@ class Management(object):
         prune_rate_harvest: 1/ha/day
         prune_rate_mass: kg_DM/ha/day
         prune_rate_periodic: 1/ha/day
-
-        ''')
+        ''', Loader=yaml.SafeLoader)
 
     _prefix = 'management'
 

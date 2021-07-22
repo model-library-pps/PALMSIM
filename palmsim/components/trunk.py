@@ -40,71 +40,64 @@ class Trunk(object):
     '''
 
     parameters = yaml.load('''
-
-    specific_maintenance:
-        value: 0.0005
-        unit: 'kg_CH2O/kg_DM/day'
-        info: 'The specific maintenance.'
-        source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
-        uncertainty: 20%
-
-    conversion_efficiency:
-        value: 0.69
-        unit: 'g_DM/g_CH2O'
-        info: 'The conversion efficiency.'
-        source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
-        uncertainty: 10%
-
-    mass_loss_rate:
-        value: 0.0
-        unit: 't/ha/day'
-        info: 'The mass loss rate.'
-        source: 'Assumption: the trunk loses no mass --- first made by Alba/Hoffman.'
-        uncertainty: 0%
-
-    potential_growth_rates:
-        value: [[0, 1.6],
-                 [3, 9.5],
-                 [6, 19.6],
-                 [9, 22.8],
-                 [12, 19.2],
-                 [15, 13.5],
-                 [18, 8.6],
-                 [21, 5.2],
-                 [24, 3.0],
-                 [27, 1.7]]
-        unit: 'YAP, kg/palm/year'
-        info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
-        source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
-        uncertainty: 10%
-
-    ''')
+        specific_maintenance:
+            value: 0.0005
+            unit: 'kg_CH2O/kg_DM/day'
+            info: 'The specific maintenance.'
+            source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
+            uncertainty: 20%
+        conversion_efficiency:
+            value: 0.69
+            unit: 'g_DM/g_CH2O'
+            info: 'The conversion efficiency.'
+            source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
+            uncertainty: 10%
+        mass_loss_rate:
+            value: 0.0
+            unit: 't/ha/day'
+            info: 'The mass loss rate.'
+            source: 'Assumption: the trunk loses no mass --- first made by Alba/Hoffman.'
+            uncertainty: 0%
+        potential_growth_rates:
+            value: [[0, 1.6],
+                    [3, 9.5],
+                    [6, 19.6],
+                    [9, 22.8],
+                    [12, 19.2],
+                    [15, 13.5],
+                    [18, 8.6],
+                    [21, 5.2],
+                    [24, 3.0],
+                    [27, 1.7]]
+            unit: 'YAP, kg/palm/year'
+            info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
+            source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
+            uncertainty: 10%
+        ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-    mass:
-        value: 2
-        unit: 'kg_DM/plant'
-        info: 'Trunk mass at 0 MAP.'
-        source: 'Based on Corley, 1971.'
-        uncertainty: 10%
-    ''')
+        mass:
+            value: 2
+            unit: 'kg_DM/plant'
+            info: 'Trunk mass at 0 MAP.'
+            source: 'Based on Corley, 1971.'
+            uncertainty: 10%
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
-    assim_growth                   : 'kg_CH2O/ha/day'
-    maintenance_requirement        : 'kg_CH2O/ha/day'
-    mass                           : 'kg_DM/ha'
-    mass_change_rate               : 'kg_DM/ha/day'
-    mass_change_rate_yearly        : 'kg_DM/ha/year'
-    mass_per_palm                  : 'kg_DM/palm'
-    mass_change_rate_per_palm      : 'kg_DM/palm/year'
-    mass_growth_rate               : 'kg_DM/ha/day'
-    mass_loss_rate                 : 'kg_DM/ha/day'
-    potential_growth_rate          : 'kg_DM/ha/day'
-    potential_growth_rate_per_palm : 'kg_DM/palm/year'
-    potential_sink_strength        : 'kg_CH2O/ha/day'
-
-    ''')
+        assim_growth                   : 'kg_CH2O/ha/day'
+        maintenance_requirement        : 'kg_CH2O/ha/day'
+        mass                           : 'kg_DM/ha'
+        mass_change_rate               : 'kg_DM/ha/day'
+        mass_change_rate_yearly        : 'kg_DM/ha/year'
+        mass_per_palm                  : 'kg_DM/palm'
+        mass_change_rate_per_palm      : 'kg_DM/palm/year'
+        mass_growth_rate               : 'kg_DM/ha/day'
+        mass_loss_rate                 : 'kg_DM/ha/day'
+        potential_growth_rate          : 'kg_DM/ha/day'
+        potential_growth_rate_per_palm : 'kg_DM/palm/year'
+        potential_sink_strength        : 'kg_CH2O/ha/day'
+    ''', Loader=yaml.SafeLoader)
 
     _prefix = 'trunk'
 

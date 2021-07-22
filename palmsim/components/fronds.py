@@ -41,187 +41,167 @@ class Fronds(object):
     '''
 
     parameters = yaml.load('''
-
-    specific_maintenance_rachis:
-        value: 0.002
-        unit: 'g_CH2O/g_DM/day'
-        info: 'The specific maintenance of the rachis.'
-        source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
-                Photosynthese et productivite du palmier a huile en liaison
-                avec les facteurs climatiques.
-                Tableau II. After Gray, 1969.'
-        uncertainty: 5%
-
-    specific_maintenance_leaflets:
-        value: 0.0083
-        unit: 'g_CH2O/g_DM/day'
-        info: 'The specific maintenance of the leaflets.'
-        source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
+        specific_maintenance_rachis:
+            value: 0.002
+            unit: 'g_CH2O/g_DM/day'
+            info: 'The specific maintenance of the rachis.'
+            source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
                     Photosynthese et productivite du palmier a huile en liaison
                     avec les facteurs climatiques.
-                    Tableau II. Mesures realiseses a La Me.'
-        uncertainty: 5%
-
-    conversion_efficiency:
-        value: 0.69
-        unit: 'g_DM/g_CH2O'
-        info: 'The conversion efficiency of the fronds.'
-        source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
-                    Photosynthese et productivite du palmier a huile en liaison
-                    avec les facteurs climatiques.
-                    In turn based on van Kraalingen, D.W.G., 1989.
-                    See text below table II and table III.'
-        uncertainty: 5%
-
-    fraction_rachis:
-        value: 0.75
-        unit: '1'
-        info: 'Mass of the rachis/frond mass
-                not clear if frond mass includes/excludes petiole.'
-        source: '?'
-        uncertainty: 5%
-
-    fraction_leaflets:
-        value: 0.25
-        unit: '1'
-        info: 'Mass of the leaflets/frond mass
-                not clear if frond mass includes/excludes petiole.'
-        source: '?'
-        uncertainty: 5%
-
-    specific_leaf_area:
-        value: 3.1
-        unit: 'm**2/kg_DM'
-        info: 'The specific leaf area. Not used, only for checking.'
-        source: 'Presumably derived by dividing reported leaf area/
-                    leaf mass found in the paper by Corley, R.H.V.
-                    and Gray, B.S. and Ng, S.K., 1971:
-                    Productivity of the oil palm in Malaysia.'
-        uncertainty: 10%
-
-    LUE:
-        value: 3.8
-        unit: 'g_CH2O/MJ'
-        info: 'The light use efficiency.'
-        source: 'Based on a more detailed hourly light-response
-                    model (copied from SUCROS) using oil palm LR measurements by Breure, Gerritsma.'
-        uncertainty: 10%
-
-    k:
-        value: 0.33
-        unit: '1'
-        info: 'The canopy light extinction coefficient.'
-        source: 'Based on the thesis by Gerritsma, W., 1988.'
-        uncertainty: 5%
-
-    leaf_area_a:
-        value: 12.13
-        unit: 'm**2'
-        info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of
-                    oil palm in indonesia.
-                    Table 1, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    leaf_area_b:
-        value: 2.47
-        unit: 'm**2'
-        info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of
-                    oil palm in indonesia.
-                    Table 1, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    leaf_area_c:
-        value: 0.36
-        unit: 'm**2'
-        info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
-        source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of
-                    oil palm in indonesia.
-                    Table 1, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    initiation_rate_a:
-        value: 24
-        unit: '1/palm/year'
-        info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of oil palm in indonesia.
-                    Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    initiation_rate_b:
-        value: 1.6
-        unit: '1'
-        info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of oil palm in indonesia.
-                    Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    initiation_rate_c:
-        value: 0.3
-        unit: '1/year'
-        info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
-        source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of oil palm in indonesia.
-                    Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    initiation_rate_max:
-        value: 50
-        unit: '1/year'
-        info: 'The upper limit on the frond initiation rate.'
-        source: 'Roughly based on Gerritsma, W. and Soebagyo, F.X., 1998.
-                    An analysis of the growth of leaf area of oil palm in indonesia.
-                    Table 3, experiment 1, 143 palms/ha density.'
-        uncertainty: 5%
-
-    potential_growth_rate:
-        value: 4
-        unit: 'kg_DM/palm/month'
-        info: 'The potential growth rate'
-        source: 'Based on Corley et al., 1971.'
-        uncertainty: 5%
-
-    asymptotic_photosynthesis_rate:
-        value: 720
-        unit: 'ug_CO2/m2/s'
-        info: 'Co-determines the light response (g CH2O/m2/s) curve, the maximum value.'
-        source: 'Gerritsma, W., 1988. 
-                Light interception, leaf photosynthesis
-                and sink-source relations in Oil Palm'
-
-    initial_light_efficiency:
-        value: 9
-        unit: 'ug_CO2/J'
-        info: 'Co-determines the light response (g CH2O/MJ) curve, the slope.'
-        source: 'Gerritsma, W., 1988. 
-                Light interception, leaf photosynthesis
-                and sink-source relations in Oil Palm'
-
-    ''')
+                    Tableau II. After Gray, 1969.'
+            uncertainty: 5%
+        specific_maintenance_leaflets:
+            value: 0.0083
+            unit: 'g_CH2O/g_DM/day'
+            info: 'The specific maintenance of the leaflets.'
+            source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
+                        Photosynthese et productivite du palmier a huile en liaison
+                        avec les facteurs climatiques.
+                        Tableau II. Mesures realiseses a La Me.'
+            uncertainty: 5%
+        conversion_efficiency:
+            value: 0.69
+            unit: 'g_DM/g_CH2O'
+            info: 'The conversion efficiency of the fronds.'
+            source: 'Copied from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
+                        Photosynthese et productivite du palmier a huile en liaison
+                        avec les facteurs climatiques.
+                        In turn based on van Kraalingen, D.W.G., 1989.
+                        See text below table II and table III.'
+            uncertainty: 5%
+        fraction_rachis:
+            value: 0.75
+            unit: '1'
+            info: 'Mass of the rachis/frond mass
+                    not clear if frond mass includes/excludes petiole.'
+            source: '?'
+            uncertainty: 5%
+        fraction_leaflets:
+            value: 0.25
+            unit: '1'
+            info: 'Mass of the leaflets/frond mass
+                    not clear if frond mass includes/excludes petiole.'
+            source: '?'
+            uncertainty: 5%
+        specific_leaf_area:
+            value: 3.1
+            unit: 'm**2/kg_DM'
+            info: 'The specific leaf area. Not used, only for checking.'
+            source: 'Presumably derived by dividing reported leaf area/
+                        leaf mass found in the paper by Corley, R.H.V.
+                        and Gray, B.S. and Ng, S.K., 1971:
+                        Productivity of the oil palm in Malaysia.'
+            uncertainty: 10%
+        LUE:
+            value: 3.8
+            unit: 'g_CH2O/MJ'
+            info: 'The light use efficiency.'
+            source: 'Based on a more detailed hourly light-response
+                        model (copied from SUCROS) using oil palm LR measurements by Breure, Gerritsma.'
+            uncertainty: 10%
+        k:
+            value: 0.33
+            unit: '1'
+            info: 'The canopy light extinction coefficient.'
+            source: 'Based on the thesis by Gerritsma, W., 1988.'
+            uncertainty: 5%
+        leaf_area_a:
+            value: 12.13
+            unit: 'm**2'
+            info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
+            source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of
+                        oil palm in indonesia.
+                        Table 1, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        leaf_area_b:
+            value: 2.47
+            unit: 'm**2'
+            info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
+            source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of
+                        oil palm in indonesia.
+                        Table 1, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        leaf_area_c:
+            value: 0.36
+            unit: 'm**2'
+            info: 'Parametrizes leaf area (Gompertz curve: a*exp(-b*exp(-c*t)))as a function of years after planting.'
+            source: 'Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of
+                        oil palm in indonesia.
+                        Table 1, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        initiation_rate_a:
+            value: 24
+            unit: '1/palm/year'
+            info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
+            source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of oil palm in indonesia.
+                        Table 3, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        initiation_rate_b:
+            value: 1.6
+            unit: '1'
+            info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
+            source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of oil palm in indonesia.
+                        Table 3, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        initiation_rate_c:
+            value: 0.3
+            unit: '1/year'
+            info: 'Parametrizes the frond initiation rate (exponential decay with age: a*(1+b*exp(-c*(t)) )as a function of years after planting.'
+            source: 'Calibration, initially based on Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of oil palm in indonesia.
+                        Table 3, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        initiation_rate_max:
+            value: 50
+            unit: '1/year'
+            info: 'The upper limit on the frond initiation rate.'
+            source: 'Roughly based on Gerritsma, W. and Soebagyo, F.X., 1998.
+                        An analysis of the growth of leaf area of oil palm in indonesia.
+                        Table 3, experiment 1, 143 palms/ha density.'
+            uncertainty: 5%
+        potential_growth_rate:
+            value: 4
+            unit: 'kg_DM/palm/month'
+            info: 'The potential growth rate'
+            source: 'Based on Corley et al., 1971.'
+            uncertainty: 5%
+        asymptotic_photosynthesis_rate:
+            value: 720
+            unit: 'ug_CO2/m2/s'
+            info: 'Co-determines the light response (g CH2O/m2/s) curve, the maximum value.'
+            source: 'Gerritsma, W., 1988. 
+                    Light interception, leaf photosynthesis
+                    and sink-source relations in Oil Palm'
+        initial_light_efficiency:
+            value: 9
+            unit: 'ug_CO2/J'
+            info: 'Co-determines the light response (g CH2O/MJ) curve, the slope.'
+            source: 'Gerritsma, W., 1988. 
+                    Light interception, leaf photosynthesis
+                    and sink-source relations in Oil Palm'
+        ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-    mass:
-        value: 30
-        uncertainty: 0
-        unit: 'kg_DM/plant'
-        info: 'Frond mass at 0 MAP.'
-        source: 'Based on Corley, 1971.'
-    count:
-        value: 30
-        uncertainty: 0
-        unit: 'count/plant'
-        info: 'Frond count at 0 MAP.'
-        source: 'Based on Woittiez, L. et al. 2017, and Advances in Oil Palm Research Volume 1, 2000. p. 27.'
-    ''')
+        mass:
+            value: 30
+            uncertainty: 0
+            unit: 'kg_DM/plant'
+            info: 'Frond mass at 0 MAP.'
+            source: 'Based on Corley, 1971.'
+        count:
+            value: 30
+            uncertainty: 0
+            unit: 'count/plant'
+            info: 'Frond count at 0 MAP.'
+            source: 'Based on Woittiez, L. et al. 2017, and Advances in Oil Palm Research Volume 1, 2000. p. 27.'
+        ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         assim_growth                   : 'kg_CH2O/ha/day'
         assim_produced                 : 'kg_CH2O/ha/day'
         count                          : '1/ha'
@@ -257,8 +237,7 @@ class Fronds(object):
         prune_rate_mass                : 'kg_DM/ha/day'
         prune_rate_rachis_mass         : 'kg_DM/ha/day'
         prune_rate_leaflets_mass       : 'kg_DM/ha/day'
-
-    ''')
+    ''', Loader=yaml.SafeLoader)
 
     _prefix = 'fronds'
 
@@ -424,7 +403,7 @@ class Fronds(object):
 
     @property
     def count_growth_rate(self):
-        ''' Fround count growth rate (1/ha/day). '''
+        ''' Frond count growth rate (1/ha/day). '''
         return self.initiation_rate*self._planting_density
 
     @property

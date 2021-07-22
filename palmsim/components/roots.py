@@ -33,72 +33,64 @@ class Roots(object):
     '''
 
     parameters = yaml.load('''
-
-    specific_maintenance:
-        value: 0.0022
-        unit: 'g_CH2O/g_DM/day'
-        info: 'The specific maintenance.'
-        source: 'Taken from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
-                Photosynthese et productivite du palmier a huile en liaison
-                avec les facteurs climatiques.
-                Table ?.'
-        uncertainty: 20%
-
-    conversion_efficiency:
-        value: 0.69
-        unit: 'g_DM/g_CH2O'
-        info: 'The conversion efficiency.'
-        source: 'Taken from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
+        specific_maintenance:
+            value: 0.0022
+            unit: 'g_CH2O/g_DM/day'
+            info: 'The specific maintenance.'
+            source: 'Taken from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
                     Photosynthese et productivite du palmier a huile en liaison
                     avec les facteurs climatiques.
-                    In turn based on van Kraalingen, D.W.G., 1989.
-                    See text below table II and table III.'
-        uncertainty: 10%
-
-    loss_param_a:
-        value: 0.000433
-        unit: '1/day'
-        info: 'Co-determines the mass loss rate of the roots.'
-        source: 'The legacy version; PalmSim 2014.'
-        uncertainty: 20%
-
-    loss_param_b:
-        value: 1.8
-        unit: 'kg_DM/ha/day'
-        info: 'Co-determines the mass loss rate of the roots.'
-        source: 'The legacy version; PalmSim 2014.'
-        uncertainty: 20%
-
-    potential_growth_rates:
-        value: [[0, 3.5],
-                [3, 5.7],
-                [6, 5.1],
-                [9, 3.4],
-                [12, 1.9],
-                [15, 1.0],
-                [18, 0.5],
-                [21, 0.3],
-                [24, 0.1],
-                [27, 0.1]]
-        unit: 'YAP, kg/palm/year'
-        info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
-        source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
-        uncertainty: 10%
-
-    ''')
+                    Table ?.'
+            uncertainty: 20%
+        conversion_efficiency:
+            value: 0.69
+            unit: 'g_DM/g_CH2O'
+            info: 'The conversion efficiency.'
+            source: 'Taken from Dufrene, E. and Ochs, R. and Saugier, B., 1990.
+                        Photosynthese et productivite du palmier a huile en liaison
+                        avec les facteurs climatiques.
+                        In turn based on van Kraalingen, D.W.G., 1989.
+                        See text below table II and table III.'
+            uncertainty: 10%
+        loss_param_a:
+            value: 0.000433
+            unit: '1/day'
+            info: 'Co-determines the mass loss rate of the roots.'
+            source: 'The legacy version; PalmSim 2014.'
+            uncertainty: 20%
+        loss_param_b:
+            value: 1.8
+            unit: 'kg_DM/ha/day'
+            info: 'Co-determines the mass loss rate of the roots.'
+            source: 'The legacy version; PalmSim 2014.'
+            uncertainty: 20%
+        potential_growth_rates:
+            value: [[0, 3.5],
+                    [3, 5.7],
+                    [6, 5.1],
+                    [9, 3.4],
+                    [12, 1.9],
+                    [15, 1.0],
+                    [18, 0.5],
+                    [21, 0.3],
+                    [24, 0.1],
+                    [27, 0.1]]
+            unit: 'YAP, kg/palm/year'
+            info: 'The potential growth rate at different points in time, determines the potential sink strength and thus assimilate partitioning.'
+            source: 'Obtained by fitting a Gompertz function to the mass reported in Corley, R.H.V. and Gray, B.S. and Siew Kee, NG, 1971. Productivity of the oil palm in Malaysia.'
+            uncertainty: 10%
+    ''', Loader=yaml.SafeLoader)
 
     initial_values = yaml.load('''
-
         mass:
             value: 4
             uncertainty: 20%
             unit: 't_DM/palm'
             info: 'Initial weight of the plant part.'
             source: 'Based on Corley, 1971.'
-    ''')
+    ''', Loader=yaml.SafeLoader)
 
     units = yaml.load('''
-
         assim_growth: 'kg_CH2O/ha/day'
         maintenance_requirement: 'kg_CH2O/ha/day'
         mass: 'kg_DM/ha'
@@ -111,8 +103,7 @@ class Roots(object):
         potential_growth_rate: 'kg_DM/ha/day'
         potential_growth_rate_per_palm : 'kg_DM/palm/year'
         potential_sink_strength: 'kg_CH2O/ha/day'
-
-    ''')
+    ''', Loader=yaml.SafeLoader)
 
     _prefix = 'roots'
 

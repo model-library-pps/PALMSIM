@@ -21,37 +21,30 @@ class Cohorts(object):
     """
 
     parameters = yaml.load("""
-
         female_fraction_k:
             value: 0.3
-
         female_fraction_t0:
             value: 12
-
         female_fraction_asymptote:
             value: .90
-
         stress_female_fraction_asymptote:
             value: 0.6
             unit: '1'
             info: 'The maximum relative decrease in the female fraction due to stress.'
             source: 'Calibration; based on L.D. Sparnaaijs thesis: The analysis of bunch production. p 26. figure 5.'
             uncertainty: 10%
-
         stress_female_fraction_increase:
             value: 1.8
             unit: '1'
             info: 'The decrease of the female fraction per unit increase of the stress index.'
             source: 'Calibration.'
             uncertainty: 10%
-
         stress_female_fraction_x0:
             value: 0.1
             unit: '1'
             info: 'The stress index at which the stress response (slope) is maximum. '
             source: 'Calibration.'
             uncertainty: 10%
-
         bunch_FM_to_DM_ratio:
             value: 1.9
             unit: '1'
@@ -60,48 +53,39 @@ class Cohorts(object):
                         The reflection of moisture content on palm oil development
                         during the ripening process of fresh fruits in 
                         Journal of Food Agriculture and Environment 10(1):203-209.'
-
         onset_time:
             value: 20
             unit: 'month'
             info: 'The time of onset of inflorescence production that leads to actual harvestible bunches in terms of MAP.'
             source: 'Calibration -- hardly reported in the literature, a contribution.'
-
         onset_steepness:
             value: .5
             unit: '1/month'
             info: 'The steepness of the onset of inflorescence production -- the time derivative of the onset. I.e. .5 -> in one month the fraction of inflorescences growing goes up by 50%.'
             source: 'Calibration -- hardly reported in the literature, a contribution.'
-
         t_maturity:
             value: 1080
             unit: 'day'
             info: 'The age at which the fruit is harvestible.'
             source: 'Calibration - initially based on Adam et al. 2011, see fig 3.'
-
         potential_mass_a:
             value: 23
             unit: 'kg_DM'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
-
         potential_mass_b:
             value: .14
             unit: '1/year'
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
-            
         potential_mass_x0:
             value: 2.2
             unit: ''
             info: 'Co-determines the potential bunch mass.'
             source: 'Calibration via boundary line analysis.'
-
-        """
-    )
+        """, Loader=yaml.SafeLoader)
 
     units = yaml.load("""
-
         assim_growth                    : 'kg_DM/ha/day'
         bunch_production                : 'kg_DM/ha/day'
         count                           : '1/ha'
@@ -139,8 +123,7 @@ class Cohorts(object):
         assim_growth_males              : 'kg_CH2O/ha/day'
         mesocarp_oil_content            : '1'
         Ic : '1'
-
-    """)
+    """, Loader=yaml.SafeLoader)
 
     _prefix = 'generative'
 
@@ -456,13 +439,14 @@ class Cohorts(object):
 
     @property
     def FFB_production(self):
-        """ (kg_FM/ha/yr). """
+        """Fresh fruit bunch production in a single time step (kg FM / timestep / yr). """
 
         # daily -> yearly
         N = self.bunch_count_daily
         M = self.bunch_weight
+        dt = self._dt
 
-        return 365*N*M
+        return dt * N * M
 
     @property
     def bunch_count_daily(self):
@@ -477,12 +461,12 @@ class Cohorts(object):
 
     @property
     def bunch_count(self):
-        """ (1/ha/mo). """
+        """Number of bunches produced in a single timestep."""
 
-        N = self._palm._days_in_month
         r = self.bunch_count_daily
+        dt = self._dt
 
-        return N*r
+        return dt * r
 
     @property
     def bunch_weight_dry(self):

@@ -44,55 +44,47 @@ class Weather(object):
     """
 
     parameters = yaml.load("""
-    PAR_fraction:
-        value: 0.5
-        unit: '1'
-        info: 'The fraction of PAR in sunlight.'
-        source: 'The 2004 book by Goudriaan and Van Laar, chapter 3.'
-
-    solar_constant:
-        value: 1367
-        unit: 'J/m2/s'
-        info: 'The incoming visible radiation,
-                midday, above, the equator, at the edge of the atmosphere.
-                Used to estimate the instantaneous radiation (J/m2/s)
-                from the daily total radiation (MJ/m2/day).'
-        source: 'The 2004 book by Goudriaan and Van Laar, chapter 3.'
-
-    sigma:
-        value: 5.668E-8
-        unit: '?'
-        info: 'Constant in the Stefan-Boltzmann equation.'
-        source: '[0] - setpmd.for'
-
-    psychrometer_coefficient:
-        value: 0.067
-        unit: 'kPa/degC'
-        source: ''
-
-    latent_heat_water:
-        value: 2.454
-        unit: 'MJ/kg'
-        source: ''
-
-    density_dry_air:
-        value: 1.224
-        unit: 'kg/m3'
-        source: ''
-
-    heat_capacity_dry_air:
-        value: 1013
-        unit: 'J/kg/degC'
-        source: ''
-
-    albedo:
-        value: 0.14
-        unit: '1'
-        info: 'Albedo of a twelve year old oil palm'
-        source: 'Meijide et al. 2017, Controls of water and energy fluxes
-                 in oil palm plantations: environmental variables and oil palm age'
-
-    """)
+        PAR_fraction:
+            value: 0.5
+            unit: '1'
+            info: 'The fraction of PAR in sunlight.'
+            source: 'The 2004 book by Goudriaan and Van Laar, chapter 3.'
+        solar_constant:
+            value: 1367
+            unit: 'J/m2/s'
+            info: 'The incoming visible radiation,
+                    midday, above, the equator, at the edge of the atmosphere.
+                    Used to estimate the instantaneous radiation (J/m2/s)
+                    from the daily total radiation (MJ/m2/day).'
+            source: 'The 2004 book by Goudriaan and Van Laar, chapter 3.'
+        sigma:
+            value: 5.668E-8
+            unit: '?'
+            info: 'Constant in the Stefan-Boltzmann equation.'
+            source: '[0] - setpmd.for'
+        psychrometer_coefficient:
+            value: 0.067
+            unit: 'kPa/degC'
+            source: ''
+        latent_heat_water:
+            value: 2.454
+            unit: 'MJ/kg'
+            source: ''
+        density_dry_air:
+            value: 1.224
+            unit: 'kg/m3'
+            source: ''
+        heat_capacity_dry_air:
+            value: 1013
+            unit: 'J/kg/degC'
+            source: ''
+        albedo:
+            value: 0.14
+            unit: '1'
+            info: 'Albedo of a twelve year old oil palm'
+            source: 'Meijide et al. 2017, Controls of water and energy fluxes
+                    in oil palm plantations: environmental variables and oil palm age'
+        """, Loader=yaml.SafeLoader)
 
     units = {'PAR'                   : 'MJ/m2/day',
              'PAR_monthly'           : 'TJ/ha/mo',

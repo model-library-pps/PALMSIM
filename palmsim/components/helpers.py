@@ -189,10 +189,10 @@ def read_yaml(data):
 
         if data.endswith('.yaml'):
             with open(data,'r') as f:
-                _data = yaml.load(f)
+                _data = yaml.load(f, Loader=yaml.SafeLoader)
 
         else:
-            _data = yaml.load(data)
+            _data = yaml.load(data, Loader=yaml.SafeLoader)
 
     else:
         raise ValueError

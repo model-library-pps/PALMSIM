@@ -1,5 +1,6 @@
-
-
+import os
+import sys
+import yaml
 
 from .components.fronds import Fronds
 from .components.trunk  import Trunk
@@ -114,7 +115,7 @@ def load_parameters(SETTINGS_FILENAME):
 
         with open(filepath,'r') as f:
             SETTINGS_TEXT = f.read()
-            SETTINGS = yaml.load(SETTINGS_TEXT)
+            SETTINGS = yaml.load(SETTINGS_TEXT, Loader=yaml.SafeLoader)
 
         set_parameters(SETTINGS)
 

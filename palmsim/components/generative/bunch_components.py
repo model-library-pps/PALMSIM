@@ -73,23 +73,19 @@ class BunchComponent(object):
     """
 
     parameters = yaml.load("""
-
         specific_maintenance:
             value: 0.0005
             unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
-
         conversion_efficiency:
             value: 0.69
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
-
-        """)
+        """, Loader=yaml.SafeLoader)
 
     units = yaml.load("""
-
         mass                             : 'kg_DM'
         potential_mass                   : 'kg_DM'
         age                              : 'month'
@@ -101,8 +97,7 @@ class BunchComponent(object):
         mass_growth_rate_potential       : 'kg_DM/month'
         relative_sink_strength           : '1'
         potential_sink_strength          : 'kg_CH2O/day'
-
-    """)
+    """, Loader=yaml.SafeLoader)
 
     def __init__(self, cohort=None,
                         age = 0,
@@ -296,43 +291,37 @@ class Stalk(BunchComponent):
     _prefix = 'stalk'
 
     parameters = yaml.load("""
-
         specific_maintenance:
             value: 0.0022
             unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
-
         conversion_efficiency:
             value: 0.69
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
             uncertainty: 5%
-
         t_growth_start:
             value: 0
             unit: 'days'
             info: 'The start of potential growth, relative to/ after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         t_growth_end:
             value: .75
             unit: 'days'
             info: 'The end of potential growth, relative to/after leaf initiation.'
             source: 'Based on Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         potential_mass_fraction:
             value: .25
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
             uncertainty: 10%
-
-        """)
+        """, Loader=yaml.SafeLoader)
 
 class MesocarpFibers(BunchComponent):
     """ Models an inflorescence's mesocarp fibers."""
@@ -340,42 +329,37 @@ class MesocarpFibers(BunchComponent):
     _prefix = 'mesocarp_fibers'
 
     parameters = yaml.load("""
-
         specific_maintenance:
             value: 0.0022
             unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
-
         conversion_efficiency:
             value: 0.69
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
             uncertainty: 5%
-
         t_growth_start:
             value: .825
             unit: 'days'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         t_growth_end:
             value: .95
             unit: 'days'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         potential_mass_fraction:
             value: .35
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
             uncertainty: 10%
-        """)
+        """, Loader=yaml.SafeLoader)
 
 class MesocarpOil(BunchComponent):
     """ Models an inflorescence's mesocarp oil. """
@@ -389,36 +373,31 @@ class MesocarpOil(BunchComponent):
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
-
         conversion_efficiency:
             value: 0.42
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
             uncertainty: 5%
-
         t_growth_start:
             value: .9
             unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         t_growth_end:
             value: .95
             unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         potential_mass_fraction:
             value: .35
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
             uncertainty: 10%
-
-        """)
+        """, Loader=yaml.SafeLoader)
 
 class Kernels(BunchComponent):
     """ Models an inflorescence's kernels."""
@@ -426,40 +405,34 @@ class Kernels(BunchComponent):
     _prefix = 'kernel'
 
     parameters = yaml.load("""
-
         specific_maintenance:
             value: 0.0022
             unit: 'g_CH2O/g_DM/day'
             info: 'The specific maintenance.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. Table II.'
             uncertainty: 5%
-
         conversion_efficiency:
             value: 0.42
             unit: 'g_DM/g_CH2O'
             info: 'The conversion efficiency.'
             source: 'Based on Dufrene, E. and Ochs, R. and Saugier, B., 1990. Photosynthese et productivite du palmier a huile en liaison avec les facteurs climatiques. In turn based on van Kraalingen, D.W.G., 1989. See text below table II and table III.'
             uncertainty: 5%
-
         t_growth_start:
             value: .875
             unit: 'day'
             info: 'The start of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         t_growth_end:
             value: .975
             unit: 'day'
             info: 'The end of potential growth, relative to anthesis.'
             source: 'Based on Corley, Ch.5. See fig 5.7. and Adam et al. 2011, see fig 3.'
             uncertainty: 5%
-
         potential_mass_fraction:
             value: .05
             unit: '1'
             info: 'The fraction of the potential mass that can be attributed to this component.'
             source: 'Based on Corley, Ch.5. See fig 5.7.'
             uncertainty: 10%
-
-        """)
+        """, Loader=yaml.SafeLoader)
