@@ -113,7 +113,7 @@ class Cohorts(object):
         onset_multiplicity_factor       : '1'
         bunch_failure_fraction          : '1'
         inflorescence_abortion_fraction : '1'
-        _number_of_cohorts               : '1'
+        _number_of_cohorts              : '1'
         female_fraction                 : '1'
         FFB_production                  : 't/ha/yr'
         PKO_production                  : 'kg_DM/ha/day'
@@ -122,7 +122,7 @@ class Cohorts(object):
         assim_growth_indeterminates     : 'kg_CH2O/ha/day'
         assim_growth_males              : 'kg_CH2O/ha/day'
         mesocarp_oil_content            : '1'
-        Ic : '1'
+        index_of_competition            : '1'
     """, Loader=yaml.SafeLoader)
 
     _prefix = 'generative'
@@ -171,23 +171,34 @@ class Cohorts(object):
             return self._palm.dt
 
     @property
-    def Ic(self):
-        """ The ratio of actual growth to potential growth (1), in terms of assimilates.
+    def index_of_competition(self):
+        """The ratio of actual growth to potential growth (1), in terms of 
+        assimilates. Used to calculate the stress index.
 
-        For a lack of a better name dubbed Ic "index of competion"  after Combres et al., 2013.
+        For lack of a better name dubbed "index of competition" after Combres
+        et al., 2013. 
+
+        An index of competition of 1 means that actual growth equals potential,
+        leading to a stress index of 0. An index of 0 means there is no actual
+        growth and the plant experiences full stress.
         """
-
         if self.potential_sink_strength == 0:
             res = 1
         else:
-            res = self.assim_growth/self.potential_sink_strength
+            res = self.assim_growth / self.potential_sink_strength
 
         return min(1, res)
 
     @property
     def stress_index(self):
-        """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
-        return 1 - self.Ic
+        """An indicator of plant stress (1) with a range [0, 1]:
+            0: no stress
+            1: full stress
+
+        The stress index determines the fraction of inflorescence abortion and
+        of bunch failure.
+        """
+        return 1 - self.index_of_competition
 
     @property
     def _DAP(self):
@@ -232,8 +243,9 @@ class Cohorts(object):
 
     @property
     def maintenance_requirement(self):
-        """ The generative maintenance requirement (kg_CH2O/ha/day). """
-        return sum([x.maintenance_requirement*x.multiplicity for x in self.cohorts])
+        """The generative maintenance requirement (kg_CH2O / ha / day).
+        """
+        return sum([x.maintenance_requirement * x.multiplicity for x in self.cohorts])
 
     ###############
     # Sink-strength
@@ -256,7 +268,7 @@ class Cohorts(object):
 
     def get_potential_sink_strength(self):
         """ The total potential sink strength (kg_CH2O/ha/day). """
-        return sum([x.potential_sink_strength*x.multiplicity for x in self.cohorts])
+        return sum([x.potential_sink_strength * x.multiplicity for x in self.cohorts])
 
     def get_assim_growth(self):
         """ The assimilates for generative growth. (kg_CH2O/ha/day) """
@@ -269,29 +281,24 @@ class Cohorts(object):
     # Update
     ########
     def update(self,dt=1):
-        """ Update the cohorts.
-        
-        Involves in the following order
+        """ Update the cohorts. Involves in the following order:
 
-         - Updating the existing cohorts:
-           - update each cohort
-               - mass growth (mass)
-               - abortion (multiplicity)
-               - age            
-        - Differentiating and spliting each
-         "mature" indeterminate cohort to make a
-           - female cohort
-           - male cohort
+        - Updating the existing cohorts:
+            - update each cohort
+                - mass growth (mass)
+                - abortion (multiplicity)
+                - age            
+        - Differentiating and spliting each "mature" indeterminate cohort to 
+          make a:
+            - female cohort
+            - male cohort
         - Adding new indeterminate cohorts
-        - Deleting delete-able
-         (metabolically in-active) cohorts:
-           - Male's past maturity age
-           - Female's past harvestible age
-           - Empty cohorts (multiplicity ~= 0)
+        - Deleting delete-able (metabolically in-active) cohorts:
+            - Male's past maturity age
+            - Female's past harvestible age
+            - Empty cohorts (multiplicity ~= 0)
         - Calculating the potential/relative sink strength of the cohorts.
-
         """
-
         # Calculated in the PalmSim's "assimilates" object.
         self.assim_growth = self.get_assim_growth()
 
@@ -302,8 +309,7 @@ class Cohorts(object):
         #       - age
         self.update_existing_cohorts(dt=dt)
 
-        # Differentiate and split each
-        # "mature" indeterminate cohort to make a
+        # Differentiate and split each "mature" indeterminate cohort to make a
         #   - female cohort
         #   - male cohort
         self.update_sex()
@@ -311,12 +317,10 @@ class Cohorts(object):
         # Add new indeterminate cohorts
         self.update_new_cohorts(dt=dt)
 
-        # Delete delete-able
-        # (metabolically in-active) cohorts:
+        # Delete delete-able (metabolically in-active) cohorts:
         #   - Male's past maturity age
         #   - Female's past harvestible age
         #   - Empty cohorts (multiplicity ~= 0)
-
         harvest = [x for x in self._females if x.is_harvestible]
 
         # take the oldest cohort
@@ -370,7 +374,7 @@ class Cohorts(object):
         # introduce new cohorts
 
         new_cohort = Indeterminate(container=self)
-        new_cohort.multiplicity = self.initiation_rate*dt
+        new_cohort.multiplicity = self.initiation_rate * dt
 
         self.cohorts.append(new_cohort)
 
@@ -380,7 +384,7 @@ class Cohorts(object):
     @property
     def mass(self):
         """ The total generative mass (kg_DM/ha). """
-        temp = [x.multiplicity*x.mass for x in self.cohorts]
+        temp = [x.multiplicity * x.mass for x in self.cohorts]
         return sum(temp)
 
     ##############
@@ -411,19 +415,21 @@ class Cohorts(object):
 
     @property
     def CPO_production(self):
-        """ (kg/ha/day). """
+        """Crude Palm Oil production (kg/ha/day).
+        """
         res = 0
         for bunch in self._bunches:
-            res += bunch.multiplicity*bunch.mesocarp_oil.mass
+            res += bunch.multiplicity * bunch.mesocarp_oil.mass
 
         return res/self._dt
 
     @property
     def PKO_production(self):
-        """ (kg/ha/day). """
+        """Palm Kernel Oil production (kg/ha/day).
+        """
         res = 0
         for bunch in self._bunches:
-            res += bunch.multiplicity*bunch.kernel.mass
+            res += bunch.multiplicity * bunch.kernel.mass
 
         return res/self._dt
 
@@ -439,9 +445,9 @@ class Cohorts(object):
 
     @property
     def FFB_production(self):
-        """Fresh fruit bunch production in a single time step (kg FM / timestep / yr). """
-
-        # daily -> yearly
+        """Fresh fruit bunch production in a single time step
+        (kg FM / timestep).
+        """
         N = self.bunch_count_daily
         M = self.bunch_weight
         dt = self._dt
@@ -470,14 +476,13 @@ class Cohorts(object):
 
     @property
     def bunch_weight_dry(self):
-        """ (kg_DM/bunch). """
-        
+        """Average dry weight of fruit bunches (kg_DM/bunch).
+        """
         if self._bunches:
-
-            total_mass = sum([x.mass*x.multiplicity for x in self._bunches])
+            total_mass = sum([x.mass * x.multiplicity for x in self._bunches])
             nbunches = sum([x.multiplicity for x in self._bunches])
 
-            return total_mass/nbunches
+            return total_mass / nbunches
         else:
             return 0
 
@@ -590,30 +595,45 @@ class Cohorts(object):
 
         stress_effect = 1 - a*(1/(1 + exp(-4*s*(x-x0)/a))) + a*(1/(1 + exp(-4*s*(0-x0)/a)))
 
-        return stress_effect*baseline
+        return stress_effect * baseline
 
     #############
     # New cohorts
     #############
-    def calc_onset_multiplicity(self, MAP, steepness=.5):
-        """ Helps model the on-set of inflorescence growth. """
-        t0 = self.parameters['onset_time']['value']
-        return sigmoid(MAP,t0,steepness)
-
     @property
     def onset_multiplicity_factor(self):
-        """ Helps model the on-set of inflorescence growth (1). """
+        """Factor in the range [0, 1]. Helps model the on-set of inflorescence
+        growth (1).
+        
+        The relationship between the age of the palm (MAP) and the potential
+        initiation rate of new inflorescences is described by a sigmoid curve.
+
+        onset_time:      determines at what age the initiation rate of
+                         inflorescences is half of its maximum 
+        onset_steepness: determines the shape of the sigmoid curve
+        """
         MAP = self._MAP
+        t0 = self.parameters['onset_time']['value']
         steepness = self.parameters['onset_steepness']['value']
-        return self.calc_onset_multiplicity(MAP, steepness = steepness)
+
+        return sigmoid(MAP, t0, steepness)
 
     @property
     def initiation_rate(self):
-        """ New indeterminate cohorts (1/ha/day). """
+        """New indeterminate cohorts (1 / ha / day).
+
+        The initiation rate depends on the frond initiation rate, the planting
+        density and, through the onset multiplicity factor, the age of the 
+        palm.
+        """
         if self._palm is None:
             return self._initiation_rate
         else:
-            return self.frond_initiation_rate*self._planting_density*self.onset_multiplicity_factor
+            a = self.frond_initiation_rate
+            b = self._planting_density
+            c = self.onset_multiplicity_factor
+
+            return a * b * c
 
     @property
     def _planting_density(self):

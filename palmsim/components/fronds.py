@@ -367,7 +367,7 @@ class Fronds(object):
 
         c = self.parameters['conversion_efficiency']['value']
 
-        return c*self.assim_growth
+        return c * self.assim_growth
 
     @property
     def mass_loss_rate(self):
@@ -611,7 +611,7 @@ class Fronds(object):
 
         rT = self._relative_transpiration_rate
 
-        return rT*self.total_gross_assimilation
+        return rT * self.total_gross_assimilation
 
     @property
     def LUE(self):
@@ -728,14 +728,14 @@ class Fronds(object):
         # the time-step of integration (hour)
         # gaussian weights
         xgs = [0.047, 0.231, 0.5, 0.769, 0.953]
-        wgs = [0.118,0.239,0.284,0.239,0.12]
+        wgs = [0.118, 0.239, 0.284, 0.239, 0.12]
 
         # kg_CH2O/ha/day
         total = 0
 
         for xg,wg in zip(xgs,wgs):
 
-            hour = h0 + xg*daylength
+            hour = h0 + xg * daylength
 
             rate = self.calc_gross_assimilation(hour=hour)
 
@@ -756,7 +756,8 @@ class Fronds(object):
         at different heights in the canopy.
 
         Simpliying assumptions:
-        - Light intensity and flux described by an exponential light-extinction curve
+        - Light intensity and flux described by an exponential light-extinction
+          curve
         - The leaves have random angles
 
         Parameters
@@ -764,7 +765,8 @@ class Fronds(object):
         I: photo-syntetically active radiation (irridiance) (J/m2/s)
         LAI: leaf area index (m2 leaf/m2 soil)
         fDF: fraction diffuse light (1)
-        SCP: Scattering coefficient of leaves for PAR; fraction un-absorbed PAR (1)
+        SCP: Scattering coefficient of leaves for PAR; fraction un-absorbed PAR
+             (1)
         KDF: Extinction coefficient diffuse flux leaves (1)
         SINB: Sine of the light-angle b (1)
 
@@ -778,7 +780,6 @@ class Fronds(object):
             Van Laar, H.H and Goudriaan, J. and Van Keulen, H., 1994.
             SUCROS97: Simulation of crop growth for
             potential and water-limited production situations
-
         """
 
         LAI = self.leaf_area_index 
@@ -790,54 +791,50 @@ class Fronds(object):
         I = self._calc_PAR(hour)
 
         # the intensity of the portion of diffuse light (J/m2/s)
-        PARDF = I*fDF
+        PARDF = I * fDF
 
         # the intensity of the portion of direct light (J/m2/s) 
-        PARDR = I*(1-fDF)
+        PARDR = I * (1 - fDF)
 
         # gaussian weights
-        xgs = [0.047,0.231,0.5,0.769,0.953]
-        wgs = [0.118,0.239,0.284,0.239,0.12]
+        xgs = [0.047, 0.231, 0.5, 0.769, 0.953]
+        wgs = [0.118, 0.239, 0.284, 0.239, 0.12]
 
-        # Goal here is to estimate how the light intensity
-        # decreases throughout the (uniform) canopy.
-        # It turns out that we can best assume the light intensity
-        # decreases exponentially the more canopy is above ones head.
+        # Goal here is to estimate how the light intensity decreases throughout
+        # the (uniform) canopy. It turns out that we can best assume the light
+        # intensity decreases exponentially the more canopy is above ones head.
 
-        # We start by considering
-        # SQV: a light extinction coeff for horizontal opague leaves ~ .9
-        SQV = sqrt(1-SCP)
+        # We start by considering:
+        #     SQV: a light extinction coeff for horizontal opague leaves ~ .9
+        SQV = sqrt(1 - SCP)
         
-        # from which we derive
-        
-        # REFH: a light reflection coeff for horizontal opaque leaves ~.05
-        # REFS: a light reflection coeff for spherical opaque leaves ~.05
-        REFH = (1-SQV)/(1+SQV)
-        REFS = REFH*2/(1+2*SINB)
+        # From this we derive:        
+        #     REFH: a light reflection coeff for horizontal opaque leaves ~.05
+        #     REFS: a light reflection coeff for spherical opaque leaves ~.05
+        REFH = (1 - SQV) / (1 + SQV)
+        REFS = REFH * 2 / (1 + 2 * SINB)
 
-        # next we derive a 
-        # CLUSTF: cluster coeff ~.4
-        # to try and take into account that leaves may be clustered i.e.
-        # less extinction for the same amount of leaves
-        CLUSTF = KDF / (0.8*SQV)
+        # Next we derive: 
+        #     CLUSTF: cluster coeff ~.4
+        # to try and take into account that leaves may be clustered i.e. less
+        # extinction for the same amount of leaves
+        CLUSTF = KDF / (0.8 * SQV)
 
         if verbose: print('CLUSTF',CLUSTF)
         
-        # this cluster coeff is used to estimate the final
-        # KBL: extinction coeff spherical black leaves ~.4
-        # KDRT: extinction coeff spherical 'opaque' leaves ~.3
-        # These 'opaque leaves' are our model leaves
-        # for which we take into account first order reflection/transmission
-        # in the exponential light decrease.
-        KBL = (0.5/SINB) * CLUSTF
+        # This cluster coeff is used to estimate:
+        #     KBL: extinction coeff spherical black leaves ~.4
+        #     KDRT: extinction coeff spherical 'opaque' leaves ~.3
+        # These 'opaque leaves' are our model leaves for which we take into
+        # account first order reflection/transmission in the exponential light
+        # decrease.
+        KBL = (0.5 / SINB) * CLUSTF
         KDRT = KBL * SQV
 
-        # KBL is used to estimate the direct light intensity
-        # at a certain depth.
-        # KDRT is used to estimate the total light intensity ''
-        # By comparing the two light intensities we also estimate
-        # the diffuse light intensity at a certain depth,
-        # which is the difference.
+        # KBL is used to estimate the direct light intensity at a certain 
+        # depth. KDRT is used to estimate the total light intensity.
+        # By comparing the two light intensities we also estimate the diffuse
+        # light intensity at a certain depth, which is the difference.
 
         # this will hold our result, the gross assimilation (ug_CH20/ha/s)
         AGROS = 0
@@ -849,36 +846,37 @@ class Fronds(object):
         if verbose: print('KDRT',KDRT)
         if verbose: print('KBL',KBL)
 
-        # now let us integrate our light response over the canopy depth
+        # Now let us integrate our light response over the canopy depth
         # using a Gaussian quadrature
-        for xg,wg in zip(xgs,wgs):
+        for xg, wg in zip(xgs, wgs):
 
-            # leaf area above the point the evaluate the light response
-            # eg .1
-            L = xg*LAI
+            # Leaf area above the point the evaluate the light response 
+            # (e.g. 0.1).
+            L = xg * LAI
 
             if verbose: print('--------------')
             if verbose: print('L',L)
 
-            # the absorbed fluxes - our exponential decrease
-            
-            # the flux of diffuse light
-            VISDF = (1-REFH)*PARDF*KDF*exp(-KDF*L)
-
-            # the total flux of absorbed direct light - involves first order scattering
-            VIST = (1-REFS)*PARDR*KDRT*exp(-KDRT*L)
-
-            # the flux of direct light directly hitting any leaves
-            VISD = (1-SCP)*PARDR*KBL*exp(-KBL*L)
+            # The absorbed fluxes - our exponential decrease
+            #     1. The flux of diffuse light
+            #     2. The total flux of absorbed direct light - involves first 
+            #        order scattering
+            #     3. The flux of direct light directly hitting any leaves
+            # 1.
+            VISDF = (1 - REFH) * PARDF * KDF * exp(-KDF * L)
+            # 2.
+            VIST = (1 - REFS) * PARDR * KDRT * exp(-KDRT * L)
+            # 3.
+            VISD = (1 - SCP) * PARDR * KBL * exp(-KBL * L)
 
             if verbose: print('VISDF', VISDF)
             if verbose: print('VISTOT', VIST)
             if verbose: print('VISD', VISD)
 
-            # absorbed flux for shaded leaves:
-            # diffuse light originating from the incoming diffuse light plus
-            # diffuse light originating from the scattered direct light.
-            # This estimate of the scattered direct light is arguable the most
+            # Absorbed flux for shaded leaves:
+            #     diffuse light originating from the incoming diffuse light +
+            #     diffuse light originating from the scattered direct light
+            # This estimate of the scattered direct light is arguably the most
             # difficult part to wrap your mind around.
             VISSHD = VISDF + (VIST - VISD)
 
@@ -889,7 +887,7 @@ class Fronds(object):
             if verbose: print('\tASHD',ASHD)
             if verbose: print('\tLUESH',ASHD/VISSHD)
 
-            # the light use efficiency of the shaded leaves
+            # The light use efficiency of the shaded leaves
             LUESHD = ASHD/VISSHD
 
             # absorbed flux of direct light: the non-scattering fraction

@@ -366,7 +366,7 @@ class PalmField():
 
         df = df.apply(pd.to_numeric, errors='ignore')
 
-        df['FFB_production (kg/ha/yr)'] = df['generative_FFB_production (t/ha/yr)']
+        df['FFB_production'] = df['generative_FFB_production']
 
         return df
 
@@ -379,7 +379,7 @@ class PalmField():
         ''' The list of instance variables. '''
         return [attr for attr in dir(self) if not attr.startswith('_')]
 
-    def to_dict(self,hide_attr = True):
+    def to_dict(self, hide_attr=True):
         ''' Output the variable values to a dictionary. '''
 
         d = self._to_dict()
@@ -417,7 +417,7 @@ class PalmField():
 
     @property
     def units(self):
-    	return self._units
+        return self._units
 
     def get_units(self):
         ''' Get the associated units. '''

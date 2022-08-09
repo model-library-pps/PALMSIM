@@ -13,18 +13,16 @@ from scipy import interpolate
 
 import sys
 
-def sigmoid(x,x0,k):
-    """ A sigmoid f(x).
+def sigmoid(x, x0, k):
+    """A sigmoid f(x).
 
     Properties:
-
         f(x0) = 0
         f'(x0) = k
         f(-inf) = 0
         f(+inf) = 1
-
     """
-    return 1/(1+np.exp(-k*(x-x0)))
+    return 1 / (1 + np.exp(-k * (x - x0)))
 
 def hygienic(decorator):
     ''' Decorator decorator, providies hygiene; preservation of basic attributes.'''
@@ -43,9 +41,7 @@ def add_dumps(klass):
     Most importantly adds the "to_dict" method which
     when called on an object puts the objects state/rate variables
     in a dictionary.
-
     '''
-
     @property
     def _variables(self):
         return [attr for attr in dir(self) if not attr.startswith('_')]
@@ -68,9 +64,13 @@ def add_dumps(klass):
             if isinstance(value,(float,int)):
                 if key in units:
                     unit = units[key]
-                    d['{:} ({:})'.format(key,unit)] = value
+                    # MZ: including the unit in the variable name makes the 
+                    #     results unreadable
+                    # d['{:} ({:})'.format(key,unit)] = value
+                    d[key] = value
                 else:
-                    d['{:} ({:})'.format(key,'?')] = value
+                    # d['{:} ({:})'.format(key,'?')] = value
+                    d[key] = value
             else:
                 pass
 
@@ -78,23 +78,23 @@ def add_dumps(klass):
 
             prefix = self._prefix
 
-            d = {'{:}_{:}'.format(prefix,k):v for k,v in d.items()}
+            d = {f'{prefix}_{k}':v for k, v in d.items()}
 
         return d
 
-    def print_parameters(self,default=False):
+    def print_parameters(self, default=False):
         if default:
             parameters = self.default_parameters
         else:
             parameters = self.parameters
-        print(yaml.dump(parameters,default_flow_style=False))
+        print(yaml.dump(parameters, default_flow_style=False))
 
     def __repr__(self):
 
         lines = ['Object: {:}'.format(self.__class__.__name__)]
         lines += ['']
         lines += ['{:<40.40} {:>9} {:<12}'.format('Property','Value','Unit')]
-        lines += [62*'-']
+        lines += [62 * '-']
 
         attributes = self.to_dict()
 

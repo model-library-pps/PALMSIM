@@ -9,22 +9,19 @@ from math import exp
 
 @add_dumps
 class Cohort(object):
-    """ The general model for inflorescence cohorts.
+    """The general model for inflorescence cohorts.
 
-    A cohort is represented by a "mean" inflorescence,
-    and a multiplicity denoting the number of
-    inflorescences in the cohort.
+    A cohort is represented by a "mean" inflorescence, and a multiplicity
+    denoting the number of inflorescences in the cohort.
 
     Concrete sub-classes: Indeterminate, Male, Female.
 
     Key Properties:
-        age : months after initiation
-        t_differentiation : -
-        mass : mass of the mean inflorescence
-        multiplicity : number of inflorescences in cohort
-
+        - age              : months after initiation
+        - t_differentiation: -
+        - mass             : mass of the mean inflorescence
+        - multiplicity     : number of inflorescences in cohort
     """
-
     units = yaml.load("""
         age                             : 'day'
         t_differentiation               : 'day'
@@ -48,7 +45,7 @@ class Cohort(object):
         mesocarp_oil_content            : '1'
         relative_sink_strength          : '1'
         should_trigger_flowering        : 'bool'
-        Ic                              : '1'
+        index_of_competition            : '1'
     """, Loader=yaml.SafeLoader)
 
     _name = 'Cohort'
@@ -79,28 +76,28 @@ class Cohort(object):
 
     @property
     def potential_sink_strength(self):
-        """ The potential sink strength (kg_CH2O/inflorescence/day). """
+        """ The potential sink strength (kg_CH2O/inflorescence/day). 
+        """
         return sum([x.potential_sink_strength for x in self.components])
 
     def get_relative_sink_strength(self):
-        """ Sink strength relative to other organs (1), a partitioning fraction. """
-
+        """ Sink strength relative to other organs (1), a partitioning 
+        fraction. 
+        """
         if self._container is None:
             # assume it is the only one - only used in testing
             return 1
 
         else:
-            cohort_sink_strength = self.multiplicity*self.potential_sink_strength
+            cohort_sink_strength = self.multiplicity * self.potential_sink_strength
 
             total_sink_strength = self._container.potential_sink_strength
 
             if total_sink_strength == 0:
                 return 0
             else:
-
                 # relative sink strength of each cohort
-                res = cohort_sink_strength/total_sink_strength
-                return res
+                return cohort_sink_strength / total_sink_strength
 
     @property
     def assim_growth_cohort(self):
@@ -108,19 +105,19 @@ class Cohort(object):
 
         if self._container is None:
             # only used in testing
-            return self.potential_sink_strength*self.multiplicity
+            return self.potential_sink_strength * self.multiplicity
 
         else:
             assim_growth_generative = self._container.assim_growth
 
-            return self.relative_sink_strength*assim_growth_generative
+            return self.relative_sink_strength * assim_growth_generative
 
     @property
     def assim_growth_organ(self):
         """ Assimilates for growth (kg_CH20/organ/month). """
 
         if self.multiplicity > 0:
-            return self.assim_growth_cohort/self.multiplicity
+            return self.assim_growth_cohort / self.multiplicity
         else:
             return 0
 
@@ -163,31 +160,27 @@ class Cohort(object):
 
         Note
         ----
-        We assume abortion fraction is "small"
-        s.t. we can use 1-N*epsilon ~= (1-epsilon)**N.
+        We assume the abortion fraction is "small" i.e. we can use:
+            1-N*epsilon ~= (1-epsilon)**N.
         E.g. 1.01**10 = 1.105 ~= 1 + 10*0.01
         """
+        # 1 - Update the representative bunch components.
 
-        # 1. update the representative bunch components
-
-        # in updating the mass
-        # the bunch components will ask
-        # the cohort how much assimilates are available
-        # for growth given their current age
+        # When updating the mass the bunch components will ask the cohort how
+        # much assimilates are available for growth given their current age.
         for component in self.components:
             component.update_mass(dt=dt)
 
-        # only after the mass growth has been applied
-        # we increment the age - namely
-        # the sink strength is a function of age
+        # Only after the mass growth has been applied we increment the age; the
+        # sink strength is a function of age.
         for component in self.components:
             component.update_age(dt=dt)
 
-        # 2. apply the abortion fractions
-        survival_fraction = max(0, (1-self.abortion_fraction*dt))
+        # 2 - Apply the abortion fractions.
+        survival_fraction = max(0, (1 - self.abortion_fraction * dt))
         self.multiplicity *= survival_fraction
 
-        # 3. increment age
+        # 3 - Increment age.
         self.age += dt
 
 #~~~~~~~~~~~~~~~~
@@ -333,8 +326,8 @@ class Indeterminate(Cohort):
         f = 1 - self.female_fraction
 
         # Pass on cohort multiplicity/relative sink strength
-        cohort.multiplicity = f*self.multiplicity
-        cohort.relative_sink_strength = f*self.relative_sink_strength
+        cohort.multiplicity = f * self.multiplicity
+        cohort.relative_sink_strength = f * self.relative_sink_strength
 
         return cohort
 
@@ -358,8 +351,8 @@ class Indeterminate(Cohort):
         f = self.female_fraction
 
         # Pass on cohort multiplicity/relative sink strength
-        cohort.multiplicity = f*self.multiplicity
-        cohort.relative_sink_strength = f*self.relative_sink_strength
+        cohort.multiplicity = f * self.multiplicity
+        cohort.relative_sink_strength = f * self.relative_sink_strength
 
         return cohort
 
@@ -446,9 +439,7 @@ class Female(Cohort):
         """, Loader=yaml.SafeLoader)
 
     sex = 'female'
-    def __init__(self,container=None,
-                        potential_mass=0,
-                        t_maturity=1200):
+    def __init__(self, container=None, potential_mass=0, t_maturity=1200):
 
         self._container = container
 
@@ -499,8 +490,13 @@ class Female(Cohort):
 
     @property
     def _stress_index(self):
-        """ An indicator of plant stress (1) with a range [0,1] - low to high stress. """
-    
+        """An indicator of plant stress (1) with a range [0, 1]:
+            0: no stress
+            1: full stress
+
+        The stress index determines the fraction of inflorescence abortion and
+        of bunch failure.
+        """
         parent = self._container
     
         if parent is None:

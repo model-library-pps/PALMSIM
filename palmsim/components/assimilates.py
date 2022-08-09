@@ -233,22 +233,22 @@ class Assimilates(object):
         """ Assimilates for growth (kg_CH2O/ha/day). """
         S = self.assim_growth_total
 
-        potential = self.potential_sink_strength_generative
+        pot_generative = self.potential_sink_strength_generative
+        pot_vegetative = self.potential_sink_strength_vegetative
 
-        Ds = [self.potential_sink_strength_vegetative,
-              potential]
+        Ds = [pot_vegetative, pot_generative]
 
         k = self.parameters['vegetative_priority']['value']
 
-        res = float(parametrized_partitioning(S,Ds,k)[1])
+        res = float(parametrized_partitioning(S, Ds, k)[1])
 
-        return min(res,potential)
+        return min(res, pot_generative)
 
     #~~~~~~~~~~
 
     def get_assim_growth_total(self):
 
-        assim_growth_total = self.assim_produced-self.assim_maintenance_total
+        assim_growth_total = self.assim_produced - self.assim_maintenance_total
 
         if assim_growth_total >= 0:
             return assim_growth_total
@@ -331,7 +331,6 @@ def prioritized_partitioning(S,Ds):
     >>> prioritized_partitioning(4,[2,1])
     [2,2]
     """
-
     # output
     Ss = []
 
@@ -340,7 +339,6 @@ def prioritized_partitioning(S,Ds):
         if D < S:
             Ss.append(D)
             S -= D
-
         # D > S
         else:
             Ss.append(S)
@@ -389,5 +387,5 @@ def parametrized_partitioning(S,Ds,k):
     Linear combination thereof for 0 < k < 1.
     """
 
-    return k*prioritized_partitioning(S,Ds) + \
-            (1-k)*proportionate_partitioning(S,Ds)
+    return k * prioritized_partitioning(S,Ds) + \
+            (1 - k) * proportionate_partitioning(S,Ds)
