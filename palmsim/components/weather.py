@@ -202,7 +202,7 @@ class Weather(object):
         elif isinstance(series, pd.Series):
 
             # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.items()}
 
             self._radiation_series = d
             self._radiation_series_mean = float(series.mean())
@@ -267,7 +267,7 @@ class Weather(object):
         elif isinstance(series, pd.Series):
 
             # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.items()}
 
             self._rainfall_series = d
             self._rainfall_series_mean = float(series.mean())
@@ -332,7 +332,7 @@ class Weather(object):
         elif isinstance(series, pd.Series):
 
             # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.items()}
 
             self._humidity_series = d
             self._humidity_series_mean = float(series.mean())
@@ -397,7 +397,7 @@ class Weather(object):
         elif isinstance(series, pd.Series):
 
             # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.items()}
 
             self._temperature_series = d
             self._temperature_series_mean = float(series.mean())
@@ -462,7 +462,7 @@ class Weather(object):
         elif isinstance(series, pd.Series):
 
             # to speed up fetching the data, we make a dictionary having the time as keys
-            d = {(t.year,t.month,t.day): float(v) for t,v in series.iteritems()}
+            d = {(t.year,t.month,t.day): float(v) for t,v in series.items()}
 
             self._windspeed_series = d
             self._windspeed_series_mean = float(series.mean())
