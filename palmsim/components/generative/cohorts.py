@@ -239,6 +239,10 @@ class Indeterminate(Cohort):
         # the container keeps track of the cohorts
         self._container = container
 
+        # for prototyping only
+        self._t_maturity_ = 1200
+        self._female_fraction = 0.9
+
         # state
         self.multiplicity = 1
         self.t_maturity =  self._t_maturity
@@ -251,10 +255,6 @@ class Indeterminate(Cohort):
 
         # rate
         self.relative_sink_strength = 0
-
-        # for prototyping only
-        self._t_maturity_ = 1200
-        self._female_fraction = 0.9
 
         # param
         self._abortion_fraction = self.parameters['abortion_fraction']['value']
