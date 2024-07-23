@@ -32,6 +32,7 @@ See the contact section below.
 
 - Alba Vera Castenada
 - Munir Hoffman
+- Willem Hekman
 
 # License
 
@@ -39,4 +40,4 @@ This project is licensed under a copy-left license, see http://models.pps.wur.nl
 
 # Contact
 
-The email of the maintair of this project is: willem.hekmar(at)wur.nl
+The email of the maintair of this project is: mink.zijlstra(at)wur.nl
