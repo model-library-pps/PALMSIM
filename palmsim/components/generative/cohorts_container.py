@@ -447,6 +447,9 @@ class Cohorts(object):
     def FFB_production(self):
         """Fresh fruit bunch production in a single time step
         (kg FM / timestep).
+
+        The production is reported per timestep to make aggregation of the data
+        per month or per year more straightforward.
         """
         N = self.bunch_count_daily
         M = self.bunch_weight
