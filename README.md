@@ -8,7 +8,7 @@ The easiest way to get started is by having a look at the Jupyter notebooks in t
 
 If you can not open Jupyter notebooks yet or dont know what they are, see the install guide section.
 
-At some point you can also find a useful guide/reference in the documentation folder.
+The `examples`-folder contains a number of notebooks that show how to use the model.
 
 # Install Guide
 
@@ -19,8 +19,6 @@ The easiest way to do so, is to install Python via the Anaconda distribution.
 See https://anaconda.com/download/
 
 For information on Jupyter notebooks, please search the internet. There are lots of good explanations available.
-
-PALMSIM is contained in this repository.
 
 # Contributing
 
