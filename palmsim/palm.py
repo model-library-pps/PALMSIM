@@ -364,8 +364,6 @@ class PalmField():
 
         df = df.set_index(pd.to_datetime(df['date']))
 
-        df = df.apply(pd.to_numeric, errors='ignore')
-
         df['FFB_production'] = df['generative_FFB_production']
 
         return df
